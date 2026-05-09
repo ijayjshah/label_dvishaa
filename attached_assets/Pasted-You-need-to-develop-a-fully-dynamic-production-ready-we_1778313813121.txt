@@ -1,0 +1,369 @@
+You need to develop a fully dynamic, production-ready website exactly according to the provided Figma design and database structure.
+
+## Core Requirements
+
+### 1. UI & Responsiveness
+
+* Follow the Figma design strictly for all pages, spacing, typography, colors, layouts, and interactions.
+* The entire website must be fully responsive:
+
+  * Mobile-first approach
+  * Tablet responsive
+  * Desktop responsive
+* Admin panel must also be mobile-friendly.
+* Mobile UI should not be limited to the current Figma layout only. Improve the mobile experience by adding better usability, optimized sections, improved navigation, and additional mobile-friendly layouts wherever necessary while keeping the design consistent.
+
+---
+
+## 2. Authentication & User Management
+
+### Signup Flow
+
+At signup, collect only:
+
+* Full Name
+* Email
+* Phone Number
+
+### Login
+
+* Secure authentication system
+* JWT/session-based authentication
+* Maintain complete customer history after login
+
+### User Data
+
+When placing an order, collect:
+
+* Full Address
+* City
+* State
+* Pincode
+* Additional order-related details
+
+All customer activities must be stored and visible in the admin panel:
+
+* Orders
+* Gallery uploads
+* Profile details
+* Payment history
+* User activity
+
+---
+
+## 3. Database & Storage
+
+### Database
+
+Use:
+
+* PostgreSQL
+
+### Image Storage
+
+Use:
+
+* Cloudinary
+
+Reason:
+
+* Avoid server load
+* Better image optimization and CDN delivery
+
+All uploaded images should go directly to Cloudinary.
+
+---
+
+## 4. Website Sections
+
+### Dynamic Sections
+
+These sections must be fully manageable from the admin panel:
+
+* Categories
+* Products
+* Homepage banners
+* Gallery
+* Orders
+* Users
+* Mobile section content
+
+### Static Sections
+
+These sections do NOT require APIs:
+
+* About Us
+* Contact Us
+
+---
+
+## 5. Categories
+
+* Currently display only 4 main categories on the frontend.
+* No subcategories required for now.
+* Categories should remain fully dynamic from admin panel.
+* Admin can:
+
+  * Add category
+  * Edit category
+  * Delete category
+  * Upload category image
+
+---
+
+## 6. Product Management & Size System
+
+Each product must support multiple sizes.
+
+### Product Upload Requirements
+
+While uploading a product, admin should be able to define:
+
+* Product name
+* Description
+* Price
+* Images
+* Category
+* Available sizes
+* Stock quantity
+* Product status
+
+### Size Management
+
+* Sizes should be dynamic.
+* Admin can select multiple available sizes for each product.
+* Example:
+
+  * S
+  * M
+  * L
+  * XL
+  * XXL
+
+### Product View Page
+
+On the product detail/view page:
+
+* Display available sizes clearly
+* User must select size before adding to cart or buying
+* Show selected size in cart and order details
+
+Sizes should also be manageable from admin panel for future scalability.
+
+---
+
+## 7. Gallery Section
+
+Create a gallery section where:
+
+* Users can upload images
+* Images are stored on Cloudinary
+* Admin can:
+
+  * View uploads
+  * Delete uploads
+  * Moderate content
+
+Gallery should be optimized for mobile devices.
+
+---
+
+## 8. Payment Integration
+
+Integrate:
+
+* Razorpay
+
+Features:
+
+* Secure payment flow
+* Order status tracking
+* Payment history
+* Razorpay webhook support
+
+---
+
+## 9. Admin Panel Requirements
+
+Admin panel should include:
+
+### Dashboard
+
+* Total users
+* Total orders
+* Revenue stats
+* Recent activity
+
+### User Management
+
+* View users
+* View customer history
+* Block/unblock users
+
+### Category Management
+
+* CRUD operations
+
+### Product Management
+
+* CRUD operations
+* Image uploads via Cloudinary
+* Size management
+* Inventory management
+
+### Order Management
+
+* Order tracking
+* Status updates
+* Payment verification
+
+### Gallery Management
+
+* Moderate uploaded images
+
+### CMS Management
+
+* Homepage content
+* Banner management
+* Static content management
+
+Admin panel UI should:
+
+* Reuse components
+* Use proper layouts
+* Be mobile responsive
+
+---
+
+## 10. Code Architecture & Best Practices
+
+Create a clean and scalable folder structure.
+
+### Frontend Structure
+
+Use reusable components:
+
+* Buttons
+* Inputs
+* Cards
+* Tables
+* Modals
+* Forms
+* Loaders
+* Pagination
+* Empty states
+* Product cards
+* Size selectors
+
+Suggested structure:
+
+src/
+├── components/
+│    ├── common/
+│    ├── ui/
+│    ├── forms/
+│    ├── layouts/
+│    ├── product/
+│    └── admin/
+│
+├── pages/
+├── hooks/
+├── services/
+├── store/
+├── utils/
+├── constants/
+├── routes/
+├── context/
+└── styles/
+
+### Backend Structure
+
+server/
+├── controllers/
+├── routes/
+├── models/
+├── middleware/
+├── services/
+├── utils/
+├── config/
+├── validations/
+└── uploads/
+
+---
+
+## 11. Recommended Tech Stack
+
+### Frontend
+
+* Next.js or React.js
+* Tailwind CSS
+* Redux Toolkit or Zustand
+
+### Backend
+
+* Node.js
+* Express.js
+
+### Database
+
+* PostgreSQL
+
+### Storage
+
+* Cloudinary
+
+### Payment
+
+* Razorpay
+
+---
+
+## 12. APIs & Dynamic Content
+
+All dynamic content should use APIs properly.
+
+Use:
+
+* Proper API structure
+* Validation
+* Error handling
+* Loading states
+* Pagination where needed
+
+---
+
+## 13. Performance & SEO
+
+Implement:
+
+* Lazy loading
+* Optimized images
+* SEO-friendly pages
+* Fast mobile performance
+* Clean URL structure
+
+---
+
+## 14. Security
+
+Implement:
+
+* Input validation
+* Rate limiting
+* Secure authentication
+* Password hashing
+* Protected admin routes
+* Secure payment verification
+
+---
+
+## 15. Important Notes
+
+* Everything should follow the Figma design exactly.
+* Focus heavily on mobile responsiveness.
+* Improve mobile UI experience beyond the current Figma limitations wherever needed.
+* Build reusable and maintainable components.
+* Avoid hardcoded data.
+* Make the entire website admin-manageable wherever possible.
+* Code should be scalable for future category and feature expansion.
+* Product size management is mandatory and must be fully dynamic.
