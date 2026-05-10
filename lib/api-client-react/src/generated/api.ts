@@ -27,11 +27,21 @@ import type {
   Category,
   CategoryInput,
   CategoryUpdate,
+  ContactMessage,
+  ContactMessageCreate,
+  ContactMessageListResponse,
+  CustomOrderRequest,
+  CustomOrderRequestAdminUpdate,
+  CustomOrderRequestCreate,
+  CustomOrderRequestListResponse,
   DashboardStats,
   GalleryInput,
   GalleryItem,
   GalleryListResponse,
+  GalleryUpdate,
   HealthStatus,
+  ListAdminContactMessagesParams,
+  ListAdminCustomOrderRequestsParams,
   ListAdminOrdersParams,
   ListGalleryParams,
   ListOrdersParams,
@@ -3909,38 +3919,41 @@ export const useUploadGallery = <
   return useMutation(getUploadGalleryMutationOptions(options));
 };
 
-export const getApproveGalleryUrl = (id: number) => {
-  return `/api/gallery/${id}/approve`;
+export const getUpdateGalleryUrl = (id: number) => {
+  return `/api/gallery/${id}`;
 };
 
-export const approveGallery = async (
+export const updateGallery = async (
   id: number,
+  galleryUpdate: GalleryUpdate,
   options?: RequestInit,
 ): Promise<GalleryItem> => {
-  return customFetch<GalleryItem>(getApproveGalleryUrl(id), {
+  return customFetch<GalleryItem>(getUpdateGalleryUrl(id), {
     ...options,
     method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(galleryUpdate),
   });
 };
 
-export const getApproveGalleryMutationOptions = <
-  TError = ErrorType<unknown>,
+export const getUpdateGalleryMutationOptions = <
+  TError = ErrorType<void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof approveGallery>>,
+    Awaited<ReturnType<typeof updateGallery>>,
     TError,
-    { id: number },
+    { id: number; data: BodyType<GalleryUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof approveGallery>>,
+  Awaited<ReturnType<typeof updateGallery>>,
   TError,
-  { id: number },
+  { id: number; data: BodyType<GalleryUpdate> },
   TContext
 > => {
-  const mutationKey = ["approveGallery"];
+  const mutationKey = ["updateGallery"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -3950,41 +3963,41 @@ export const getApproveGalleryMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof approveGallery>>,
-    { id: number }
+    Awaited<ReturnType<typeof updateGallery>>,
+    { id: number; data: BodyType<GalleryUpdate> }
   > = (props) => {
-    const { id } = props ?? {};
+    const { id, data } = props ?? {};
 
-    return approveGallery(id, requestOptions);
+    return updateGallery(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type ApproveGalleryMutationResult = NonNullable<
-  Awaited<ReturnType<typeof approveGallery>>
+export type UpdateGalleryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateGallery>>
 >;
+export type UpdateGalleryMutationBody = BodyType<GalleryUpdate>;
+export type UpdateGalleryMutationError = ErrorType<void>;
 
-export type ApproveGalleryMutationError = ErrorType<unknown>;
-
-export const useApproveGallery = <
-  TError = ErrorType<unknown>,
+export const useUpdateGallery = <
+  TError = ErrorType<void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof approveGallery>>,
+    Awaited<ReturnType<typeof updateGallery>>,
     TError,
-    { id: number },
+    { id: number; data: BodyType<GalleryUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
-  Awaited<ReturnType<typeof approveGallery>>,
+  Awaited<ReturnType<typeof updateGallery>>,
   TError,
-  { id: number },
+  { id: number; data: BodyType<GalleryUpdate> },
   TContext
 > => {
-  return useMutation(getApproveGalleryMutationOptions(options));
+  return useMutation(getUpdateGalleryMutationOptions(options));
 };
 
 export const getDeleteGalleryUrl = (id: number) => {
@@ -4515,6 +4528,539 @@ export function useListAdminOrders<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getListAdminOrdersQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Signed upload params for custom-order inspiration images (public)
+ */
+export const getGetCustomOrderUploadSignatureUrl = () => {
+  return `/api/upload/custom-order-signature`;
+};
+
+export const getCustomOrderUploadSignature = async (
+  options?: RequestInit,
+): Promise<UploadSignature> => {
+  return customFetch<UploadSignature>(getGetCustomOrderUploadSignatureUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCustomOrderUploadSignatureQueryKey = () => {
+  return [`/api/upload/custom-order-signature`] as const;
+};
+
+export const getGetCustomOrderUploadSignatureQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCustomOrderUploadSignature>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomOrderUploadSignature>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCustomOrderUploadSignatureQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCustomOrderUploadSignature>>
+  > = ({ signal }) =>
+    getCustomOrderUploadSignature({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomOrderUploadSignature>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCustomOrderUploadSignatureQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomOrderUploadSignature>>
+>;
+export type GetCustomOrderUploadSignatureQueryError = ErrorType<void>;
+
+/**
+ * @summary Signed upload params for custom-order inspiration images (public)
+ */
+
+export function useGetCustomOrderUploadSignature<
+  TData = Awaited<ReturnType<typeof getCustomOrderUploadSignature>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomOrderUploadSignature>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCustomOrderUploadSignatureQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Submit a custom design request (guest or logged-in)
+ */
+export const getCreateCustomOrderRequestUrl = () => {
+  return `/api/custom-order-requests`;
+};
+
+export const createCustomOrderRequest = async (
+  customOrderRequestCreate: CustomOrderRequestCreate,
+  options?: RequestInit,
+): Promise<CustomOrderRequest> => {
+  return customFetch<CustomOrderRequest>(getCreateCustomOrderRequestUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(customOrderRequestCreate),
+  });
+};
+
+export const getCreateCustomOrderRequestMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCustomOrderRequest>>,
+    TError,
+    { data: BodyType<CustomOrderRequestCreate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCustomOrderRequest>>,
+  TError,
+  { data: BodyType<CustomOrderRequestCreate> },
+  TContext
+> => {
+  const mutationKey = ["createCustomOrderRequest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCustomOrderRequest>>,
+    { data: BodyType<CustomOrderRequestCreate> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCustomOrderRequest(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCustomOrderRequestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCustomOrderRequest>>
+>;
+export type CreateCustomOrderRequestMutationBody =
+  BodyType<CustomOrderRequestCreate>;
+export type CreateCustomOrderRequestMutationError = ErrorType<void>;
+
+/**
+ * @summary Submit a custom design request (guest or logged-in)
+ */
+export const useCreateCustomOrderRequest = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCustomOrderRequest>>,
+    TError,
+    { data: BodyType<CustomOrderRequestCreate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCustomOrderRequest>>,
+  TError,
+  { data: BodyType<CustomOrderRequestCreate> },
+  TContext
+> => {
+  return useMutation(getCreateCustomOrderRequestMutationOptions(options));
+};
+
+export const getListAdminCustomOrderRequestsUrl = (
+  params?: ListAdminCustomOrderRequestsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/custom-order-requests?${stringifiedParams}`
+    : `/api/admin/custom-order-requests`;
+};
+
+export const listAdminCustomOrderRequests = async (
+  params?: ListAdminCustomOrderRequestsParams,
+  options?: RequestInit,
+): Promise<CustomOrderRequestListResponse> => {
+  return customFetch<CustomOrderRequestListResponse>(
+    getListAdminCustomOrderRequestsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListAdminCustomOrderRequestsQueryKey = (
+  params?: ListAdminCustomOrderRequestsParams,
+) => {
+  return [
+    `/api/admin/custom-order-requests`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getListAdminCustomOrderRequestsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminCustomOrderRequests>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminCustomOrderRequestsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminCustomOrderRequests>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminCustomOrderRequestsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminCustomOrderRequests>>
+  > = ({ signal }) =>
+    listAdminCustomOrderRequests(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminCustomOrderRequests>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminCustomOrderRequestsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminCustomOrderRequests>>
+>;
+export type ListAdminCustomOrderRequestsQueryError = ErrorType<unknown>;
+
+export function useListAdminCustomOrderRequests<
+  TData = Awaited<ReturnType<typeof listAdminCustomOrderRequests>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminCustomOrderRequestsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminCustomOrderRequests>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminCustomOrderRequestsQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getUpdateAdminCustomOrderRequestUrl = (id: number) => {
+  return `/api/admin/custom-order-requests/${id}`;
+};
+
+export const updateAdminCustomOrderRequest = async (
+  id: number,
+  customOrderRequestAdminUpdate: CustomOrderRequestAdminUpdate,
+  options?: RequestInit,
+): Promise<CustomOrderRequest> => {
+  return customFetch<CustomOrderRequest>(
+    getUpdateAdminCustomOrderRequestUrl(id),
+    {
+      ...options,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(customOrderRequestAdminUpdate),
+    },
+  );
+};
+
+export const getUpdateAdminCustomOrderRequestMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>,
+    TError,
+    { id: number; data: BodyType<CustomOrderRequestAdminUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>,
+  TError,
+  { id: number; data: BodyType<CustomOrderRequestAdminUpdate> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminCustomOrderRequest"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>,
+    { id: number; data: BodyType<CustomOrderRequestAdminUpdate> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminCustomOrderRequest(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminCustomOrderRequestMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>
+>;
+export type UpdateAdminCustomOrderRequestMutationBody =
+  BodyType<CustomOrderRequestAdminUpdate>;
+export type UpdateAdminCustomOrderRequestMutationError = ErrorType<void>;
+
+export const useUpdateAdminCustomOrderRequest = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>,
+    TError,
+    { id: number; data: BodyType<CustomOrderRequestAdminUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminCustomOrderRequest>>,
+  TError,
+  { id: number; data: BodyType<CustomOrderRequestAdminUpdate> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminCustomOrderRequestMutationOptions(options));
+};
+
+/**
+ * @summary Submit a contact form message (public)
+ */
+export const getCreateContactMessageUrl = () => {
+  return `/api/contact-messages`;
+};
+
+export const createContactMessage = async (
+  contactMessageCreate: ContactMessageCreate,
+  options?: RequestInit,
+): Promise<ContactMessage> => {
+  return customFetch<ContactMessage>(getCreateContactMessageUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(contactMessageCreate),
+  });
+};
+
+export const getCreateContactMessageMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createContactMessage>>,
+    TError,
+    { data: BodyType<ContactMessageCreate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createContactMessage>>,
+  TError,
+  { data: BodyType<ContactMessageCreate> },
+  TContext
+> => {
+  const mutationKey = ["createContactMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createContactMessage>>,
+    { data: BodyType<ContactMessageCreate> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createContactMessage(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateContactMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createContactMessage>>
+>;
+export type CreateContactMessageMutationBody = BodyType<ContactMessageCreate>;
+export type CreateContactMessageMutationError = ErrorType<void>;
+
+/**
+ * @summary Submit a contact form message (public)
+ */
+export const useCreateContactMessage = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createContactMessage>>,
+    TError,
+    { data: BodyType<ContactMessageCreate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createContactMessage>>,
+  TError,
+  { data: BodyType<ContactMessageCreate> },
+  TContext
+> => {
+  return useMutation(getCreateContactMessageMutationOptions(options));
+};
+
+export const getListAdminContactMessagesUrl = (
+  params?: ListAdminContactMessagesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/contact-messages?${stringifiedParams}`
+    : `/api/admin/contact-messages`;
+};
+
+export const listAdminContactMessages = async (
+  params?: ListAdminContactMessagesParams,
+  options?: RequestInit,
+): Promise<ContactMessageListResponse> => {
+  return customFetch<ContactMessageListResponse>(
+    getListAdminContactMessagesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListAdminContactMessagesQueryKey = (
+  params?: ListAdminContactMessagesParams,
+) => {
+  return [`/api/admin/contact-messages`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAdminContactMessagesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminContactMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminContactMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminContactMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminContactMessagesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminContactMessages>>
+  > = ({ signal }) =>
+    listAdminContactMessages(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminContactMessages>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminContactMessagesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminContactMessages>>
+>;
+export type ListAdminContactMessagesQueryError = ErrorType<unknown>;
+
+export function useListAdminContactMessages<
+  TData = Awaited<ReturnType<typeof listAdminContactMessages>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminContactMessagesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminContactMessages>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminContactMessagesQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

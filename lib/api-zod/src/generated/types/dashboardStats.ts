@@ -5,6 +5,7 @@
  * Label Dvisha e-commerce API
  * OpenAPI spec version: 0.1.0
  */
+import type { DashboardCustomOrderSummary } from "./dashboardCustomOrderSummary";
 import type { Order } from "./order";
 import type { Product } from "./product";
 
@@ -17,4 +18,7 @@ export interface DashboardStats {
   todayRevenue?: number;
   recentOrders: Order[];
   topProducts: Product[];
+  totalCustomOrderRequests: number;
+  pendingCustomOrderRequests: number;
+  recentCustomOrderRequests: DashboardCustomOrderSummary[];
 }

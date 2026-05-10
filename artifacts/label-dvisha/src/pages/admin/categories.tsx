@@ -10,10 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUrlWithCloudinaryUpload } from "@/components/ImageUrlWithCloudinaryUpload";
 import { Trash2, Pencil, Plus } from "lucide-react";
 
 function emptyForm() {
-  return { name: "", slug: "", description: "", imageUrl: "", isActive: true };
+  return {
+    name: "",
+    slug: "",
+    description: "",
+    imageUrl: "",
+    cloudinaryPublicId: undefined as string | undefined,
+    isActive: true,
+  };
 }
 
 export default function AdminCategories() {
@@ -40,13 +48,24 @@ export default function AdminCategories() {
   function openCreate() { setEditCat(null); setForm(emptyForm()); setFormOpen(true); }
   function openEdit(cat: any) {
     setEditCat(cat);
-    setForm({ name: cat.name, slug: cat.slug, description: cat.description ?? "", imageUrl: cat.imageUrl ?? "", isActive: cat.isActive });
+    setForm({
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description ?? "",
+      imageUrl: cat.imageUrl ?? "",
+      cloudinaryPublicId: cat.cloudinaryPublicId ?? undefined,
+      isActive: cat.isActive,
+    });
     setFormOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const data = { ...form, slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-") };
+    const data = {
+      ...form,
+      slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-"),
+      cloudinaryPublicId: form.cloudinaryPublicId || undefined,
+    };
     if (editCat) updateMutation.mutate({ id: editCat.id, data });
     else createMutation.mutate({ data });
   }
@@ -99,10 +118,14 @@ export default function AdminCategories() {
               <Label>Description</Label>
               <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} data-testid="input-description" />
             </div>
-            <div className="space-y-1.5">
-              <Label>Image URL</Label>
-              <Input value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." data-testid="input-image-url" />
-            </div>
+            <ImageUrlWithCloudinaryUpload
+              label="Category image"
+              value={{ imageUrl: form.imageUrl, cloudinaryPublicId: form.cloudinaryPublicId }}
+              onChange={v =>
+                setForm(f => ({ ...f, imageUrl: v.imageUrl, cloudinaryPublicId: v.cloudinaryPublicId }))
+              }
+              disabled={isPending}
+            />
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} data-testid="checkbox-active" />
               Active

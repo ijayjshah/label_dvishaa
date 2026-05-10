@@ -7,6 +7,5 @@
  */
 
 export type ListGalleryParams = {
-  approved?: boolean;
   page?: number;
 };

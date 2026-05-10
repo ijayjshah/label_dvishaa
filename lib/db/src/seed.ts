@@ -1,24 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { usersTable, categoriesTable, sizesTable, siteSettingsTable } from "./schema/index";
-import bcrypt from "bcryptjs";
+import { categoriesTable, sizesTable, siteSettingsTable } from "./schema/index";
+import { seedDefaultAdmin } from "./seed-default-admin";
 
 async function seed() {
-  // Admin user
-  const existing = await db.select().from(usersTable).where(eq(usersTable.email, "admin@labeldvisha.com"));
-  if (existing.length === 0) {
-    const passwordHash = await bcrypt.hash("Admin@1234", 12);
-    await db.insert(usersTable).values({
-      fullName: "Label Dvisha Admin",
-      email: "admin@labeldvisha.com",
-      phone: "9999999999",
-      passwordHash,
-      role: "admin",
-    });
-    console.log("Admin user created: admin@labeldvisha.com / Admin@1234");
-  } else {
-    console.log("Admin already exists");
-  }
+  await seedDefaultAdmin();
 
   // Categories
   const cats = [

@@ -1051,7 +1051,6 @@ export const DeleteBannerParams = zod.object({
 });
 
 export const ListGalleryQueryParams = zod.object({
-  approved: zod.coerce.boolean().optional(),
   page: zod.coerce.number().optional(),
 });
 
@@ -1064,7 +1063,6 @@ export const ListGalleryResponse = zod.object({
       imageUrl: zod.string(),
       cloudinaryPublicId: zod.string().nullish(),
       caption: zod.string().nullish(),
-      isApproved: zod.boolean(),
       createdAt: zod.string(),
     }),
   ),
@@ -1079,18 +1077,23 @@ export const UploadGalleryBody = zod.object({
   caption: zod.string().optional(),
 });
 
-export const ApproveGalleryParams = zod.object({
+export const UpdateGalleryParams = zod.object({
   id: zod.coerce.number(),
 });
 
-export const ApproveGalleryResponse = zod.object({
+export const UpdateGalleryBody = zod.object({
+  imageUrl: zod.string().optional(),
+  cloudinaryPublicId: zod.string().optional(),
+  caption: zod.string().nullish(),
+});
+
+export const UpdateGalleryResponse = zod.object({
   id: zod.number(),
   userId: zod.number(),
   userName: zod.string().nullish(),
   imageUrl: zod.string(),
   cloudinaryPublicId: zod.string().nullish(),
   caption: zod.string().nullish(),
-  isApproved: zod.boolean(),
   createdAt: zod.string(),
 });
 
@@ -1163,6 +1166,25 @@ export const GetAdminDashboardResponse = zod.object({
           isActive: zod.boolean(),
         })
         .optional(),
+    }),
+  ),
+  totalCustomOrderRequests: zod.number(),
+  pendingCustomOrderRequests: zod.number(),
+  recentCustomOrderRequests: zod.array(
+    zod.object({
+      id: zod.number(),
+      status: zod.enum([
+        "pending",
+        "contacted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ]),
+      createdAt: zod.string(),
+      userEmail: zod.string().nullish(),
+      userName: zod.string().nullish(),
+      categoryName: zod.string().nullish(),
+      description: zod.string().nullish(),
     }),
   ),
 });
@@ -1258,6 +1280,143 @@ export const ListAdminOrdersResponse = zod.object({
       notes: zod.string().nullish(),
       createdAt: zod.string(),
       updatedAt: zod.string().optional(),
+    }),
+  ),
+  total: zod.number(),
+  page: zod.number(),
+  limit: zod.number(),
+});
+
+/**
+ * @summary Signed upload params for custom-order inspiration images (public)
+ */
+export const GetCustomOrderUploadSignatureResponse = zod.object({
+  signature: zod.string(),
+  timestamp: zod.number(),
+  cloudName: zod.string(),
+  apiKey: zod.string(),
+  folder: zod.string().optional(),
+});
+
+/**
+ * @summary Submit a custom design request (guest or logged-in)
+ */
+export const CreateCustomOrderRequestBody = zod.object({
+  inspirationImageUrl: zod.string().optional(),
+  inspirationCloudinaryPublicId: zod.string().optional(),
+  description: zod.string().optional(),
+  categoryId: zod.number().optional(),
+  bust: zod.string().optional(),
+  waist: zod.string().optional(),
+  hip: zod.string().optional(),
+  height: zod.string().optional(),
+  colors: zod.string().optional(),
+});
+
+export const ListAdminCustomOrderRequestsQueryParams = zod.object({
+  page: zod.coerce.number().optional(),
+  status: zod
+    .enum(["pending", "contacted", "in_progress", "completed", "cancelled"])
+    .optional(),
+});
+
+export const ListAdminCustomOrderRequestsResponse = zod.object({
+  data: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number().nullish(),
+      userEmail: zod.string().nullish(),
+      userName: zod.string().nullish(),
+      categoryId: zod.number().nullish(),
+      categoryName: zod.string().nullish(),
+      inspirationImageUrl: zod.string().nullish(),
+      inspirationCloudinaryPublicId: zod.string().nullish(),
+      description: zod.string().nullish(),
+      bust: zod.string().nullish(),
+      waist: zod.string().nullish(),
+      hip: zod.string().nullish(),
+      height: zod.string().nullish(),
+      colors: zod.string().nullish(),
+      status: zod.enum([
+        "pending",
+        "contacted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ]),
+      adminNotes: zod.string().nullish(),
+      createdAt: zod.string(),
+      updatedAt: zod.string(),
+    }),
+  ),
+  total: zod.number(),
+  page: zod.number(),
+  limit: zod.number(),
+});
+
+export const UpdateAdminCustomOrderRequestParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAdminCustomOrderRequestBody = zod.object({
+  status: zod
+    .enum(["pending", "contacted", "in_progress", "completed", "cancelled"])
+    .optional(),
+  adminNotes: zod.string().nullish(),
+});
+
+export const UpdateAdminCustomOrderRequestResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number().nullish(),
+  userEmail: zod.string().nullish(),
+  userName: zod.string().nullish(),
+  categoryId: zod.number().nullish(),
+  categoryName: zod.string().nullish(),
+  inspirationImageUrl: zod.string().nullish(),
+  inspirationCloudinaryPublicId: zod.string().nullish(),
+  description: zod.string().nullish(),
+  bust: zod.string().nullish(),
+  waist: zod.string().nullish(),
+  hip: zod.string().nullish(),
+  height: zod.string().nullish(),
+  colors: zod.string().nullish(),
+  status: zod.enum([
+    "pending",
+    "contacted",
+    "in_progress",
+    "completed",
+    "cancelled",
+  ]),
+  adminNotes: zod.string().nullish(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Submit a contact form message (public)
+ */
+export const CreateContactMessageBody = zod.object({
+  fullName: zod.string(),
+  email: zod.string().email(),
+  phone: zod.string().optional(),
+  message: zod.string(),
+});
+
+export const ListAdminContactMessagesQueryParams = zod.object({
+  page: zod.coerce.number().optional(),
+});
+
+export const ListAdminContactMessagesResponse = zod.object({
+  data: zod.array(
+    zod.object({
+      id: zod.number(),
+      userId: zod.number().nullish(),
+      accountEmail: zod.string().nullish(),
+      fullName: zod.string(),
+      email: zod.string(),
+      phone: zod.string().nullish(),
+      message: zod.string(),
+      createdAt: zod.string(),
     }),
   ),
   total: zod.number(),

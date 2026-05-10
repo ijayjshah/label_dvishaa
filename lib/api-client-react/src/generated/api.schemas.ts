@@ -530,7 +530,6 @@ export interface GalleryItem {
   cloudinaryPublicId?: string | null;
   /** @nullable */
   caption?: string | null;
-  isApproved: boolean;
   createdAt: string;
 }
 
@@ -538,6 +537,13 @@ export interface GalleryInput {
   imageUrl: string;
   cloudinaryPublicId?: string;
   caption?: string;
+}
+
+export interface GalleryUpdate {
+  imageUrl?: string;
+  cloudinaryPublicId?: string;
+  /** @nullable */
+  caption?: string | null;
 }
 
 export interface GalleryListResponse {
@@ -555,6 +561,31 @@ export interface UploadSignature {
   folder?: string;
 }
 
+export type CustomOrderStatus =
+  (typeof CustomOrderStatus)[keyof typeof CustomOrderStatus];
+
+export const CustomOrderStatus = {
+  pending: "pending",
+  contacted: "contacted",
+  in_progress: "in_progress",
+  completed: "completed",
+  cancelled: "cancelled",
+} as const;
+
+export interface DashboardCustomOrderSummary {
+  id: number;
+  status: CustomOrderStatus;
+  createdAt: string;
+  /** @nullable */
+  userEmail?: string | null;
+  /** @nullable */
+  userName?: string | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  description?: string | null;
+}
+
 export interface DashboardStats {
   totalUsers: number;
   totalOrders: number;
@@ -564,6 +595,9 @@ export interface DashboardStats {
   todayRevenue?: number;
   recentOrders: Order[];
   topProducts: Product[];
+  totalCustomOrderRequests: number;
+  pendingCustomOrderRequests: number;
+  recentCustomOrderRequests: DashboardCustomOrderSummary[];
 }
 
 export interface Setting {
@@ -576,6 +610,94 @@ export interface Setting {
 export interface SettingInput {
   value: string;
   group?: string;
+}
+
+export interface CustomOrderRequestCreate {
+  inspirationImageUrl?: string;
+  inspirationCloudinaryPublicId?: string;
+  description?: string;
+  categoryId?: number;
+  bust?: string;
+  waist?: string;
+  hip?: string;
+  height?: string;
+  colors?: string;
+}
+
+export interface CustomOrderRequest {
+  id: number;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  userEmail?: string | null;
+  /** @nullable */
+  userName?: string | null;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  inspirationImageUrl?: string | null;
+  /** @nullable */
+  inspirationCloudinaryPublicId?: string | null;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  bust?: string | null;
+  /** @nullable */
+  waist?: string | null;
+  /** @nullable */
+  hip?: string | null;
+  /** @nullable */
+  height?: string | null;
+  /** @nullable */
+  colors?: string | null;
+  status: CustomOrderStatus;
+  /** @nullable */
+  adminNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomOrderRequestListResponse {
+  data: CustomOrderRequest[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CustomOrderRequestAdminUpdate {
+  status?: CustomOrderStatus;
+  /** @nullable */
+  adminNotes?: string | null;
+}
+
+export interface ContactMessageCreate {
+  fullName: string;
+  email: string;
+  phone?: string;
+  message: string;
+}
+
+export interface ContactMessage {
+  id: number;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  accountEmail?: string | null;
+  fullName: string;
+  email: string;
+  /** @nullable */
+  phone?: string | null;
+  message: string;
+  createdAt: string;
+}
+
+export interface ContactMessageListResponse {
+  data: ContactMessage[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export type ListProductsParams = {
@@ -593,7 +715,6 @@ export type ListOrdersParams = {
 };
 
 export type ListGalleryParams = {
-  approved?: boolean;
   page?: number;
 };
 
@@ -606,4 +727,13 @@ export type ListAdminOrdersParams = {
   page?: number;
   status?: string;
   search?: string;
+};
+
+export type ListAdminCustomOrderRequestsParams = {
+  page?: number;
+  status?: CustomOrderStatus;
+};
+
+export type ListAdminContactMessagesParams = {
+  page?: number;
 };

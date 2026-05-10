@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -44,8 +45,8 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center relative overflow-hidden">
-        <div className="text-center text-primary-foreground px-12">
-          <p className="font-serif text-4xl tracking-widest mb-4">LABEL DVISHA</p>
+        <div className="text-center text-primary-foreground px-12 flex flex-col items-center gap-4">
+          <BrandLogo framed imgClassName="h-14 w-auto max-w-[min(280px,85vw)] object-contain" />
           <p className="text-sm tracking-widest uppercase opacity-70">Wear Your Story</p>
         </div>
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 70%, white 0%, transparent 60%)" }} />
@@ -55,7 +56,9 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-background">
         <div className="w-full max-w-sm">
           <div className="mb-10">
-            <p className="font-serif text-2xl tracking-widest lg:hidden mb-1">LABEL DVISHA</p>
+            <div className="lg:hidden mb-4">
+              <BrandLogo imgClassName="h-10 w-auto max-w-[220px] object-contain" />
+            </div>
             <h2 className="font-serif text-2xl text-foreground">Welcome back</h2>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
           </div>

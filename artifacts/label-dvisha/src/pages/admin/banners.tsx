@@ -10,10 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUrlWithCloudinaryUpload } from "@/components/ImageUrlWithCloudinaryUpload";
 import { Trash2, Pencil, Plus } from "lucide-react";
 
 function emptyForm() {
-  return { title: "", subtitle: "", imageUrl: "", linkUrl: "", position: "hero", sortOrder: 0, isActive: true };
+  return {
+    title: "",
+    subtitle: "",
+    imageUrl: "",
+    cloudinaryPublicId: undefined as string | undefined,
+    linkUrl: "",
+    position: "hero",
+    sortOrder: 0,
+    isActive: true,
+  };
 }
 
 export default function AdminBanners() {
@@ -40,14 +50,27 @@ export default function AdminBanners() {
   function openCreate() { setEditBanner(null); setForm(emptyForm()); setFormOpen(true); }
   function openEdit(b: any) {
     setEditBanner(b);
-    setForm({ title: b.title, subtitle: b.subtitle ?? "", imageUrl: b.imageUrl ?? "", linkUrl: b.linkUrl ?? "", position: b.position ?? "hero", sortOrder: b.sortOrder ?? 0, isActive: b.isActive });
+    setForm({
+      title: b.title,
+      subtitle: b.subtitle ?? "",
+      imageUrl: b.imageUrl ?? "",
+      cloudinaryPublicId: b.cloudinaryPublicId ?? undefined,
+      linkUrl: b.linkUrl ?? "",
+      position: b.position ?? "hero",
+      sortOrder: b.sortOrder ?? 0,
+      isActive: b.isActive,
+    });
     setFormOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editBanner) updateMutation.mutate({ id: editBanner.id, data: form });
-    else createMutation.mutate({ data: form });
+    const payload = {
+      ...form,
+      cloudinaryPublicId: form.cloudinaryPublicId || undefined,
+    };
+    if (editBanner) updateMutation.mutate({ id: editBanner.id, data: payload });
+    else createMutation.mutate({ data: payload });
   }
 
   return (
@@ -105,10 +128,14 @@ export default function AdminBanners() {
               <Label>Subtitle</Label>
               <Input value={form.subtitle} onChange={e => setForm(f => ({ ...f, subtitle: e.target.value }))} data-testid="input-subtitle" />
             </div>
-            <div className="space-y-1.5">
-              <Label>Image URL</Label>
-              <Input value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." data-testid="input-image-url" />
-            </div>
+            <ImageUrlWithCloudinaryUpload
+              label="Banner image"
+              value={{ imageUrl: form.imageUrl, cloudinaryPublicId: form.cloudinaryPublicId }}
+              onChange={v =>
+                setForm(f => ({ ...f, imageUrl: v.imageUrl, cloudinaryPublicId: v.cloudinaryPublicId }))
+              }
+              disabled={createMutation.isPending || updateMutation.isPending}
+            />
             <div className="space-y-1.5">
               <Label>Link URL</Label>
               <Input value={form.linkUrl} onChange={e => setForm(f => ({ ...f, linkUrl: e.target.value }))} placeholder="/products" data-testid="input-link-url" />

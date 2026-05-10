@@ -11,6 +11,8 @@ import bannersRouter from "./banners";
 import galleryRouter from "./gallery";
 import settingsRouter from "./settings";
 import adminRouter from "./admin";
+import customOrderRequestsRouter from "./custom-order-requests";
+import contactMessagesRouter from "./contact-messages";
 
 const router: IRouter = Router();
 
@@ -25,6 +27,8 @@ router.use(ordersRouter);
 router.use(bannersRouter);
 router.use(galleryRouter);
 router.use(settingsRouter);
+router.use(customOrderRequestsRouter);
+router.use(contactMessagesRouter);
 router.use(adminRouter);
 
 export default router;

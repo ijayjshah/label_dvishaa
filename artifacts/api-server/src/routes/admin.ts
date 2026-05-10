@@ -1,7 +1,16 @@
 import { Router } from "express";
-import { db, usersTable, ordersTable, productsTable, productImagesTable } from "@workspace/db";
+import {
+  db,
+  usersTable,
+  ordersTable,
+  productsTable,
+  productImagesTable,
+  customOrderRequestsTable,
+  categoriesTable,
+} from "@workspace/db";
 import { eq, desc, count, sum, ilike, and } from "drizzle-orm";
-import { requireAdmin } from "../lib/auth";
+import { requireAdmin, requireAuth } from "../lib/auth";
+import { createCloudinaryUploadSignature } from "../lib/cloudinary-upload-signature";
 import { ListUsersQueryParams, GetUserParams, ToggleUserActiveParams, ListAdminOrdersQueryParams } from "@workspace/api-zod";
 
 const router: Router = Router();
@@ -11,7 +20,18 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res): Promise<void> =>
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [[{ totalUsers }], [{ totalOrders }], revenueResult, [{ pendingOrders }], [{ todayOrders }], recentOrders, topProducts] = await Promise.all([
+  const [
+    [{ totalUsers }],
+    [{ totalOrders }],
+    revenueResult,
+    [{ pendingOrders }],
+    [{ todayOrders }],
+    recentOrders,
+    topProducts,
+    [{ totalCustomOrderRequests }],
+    [{ pendingCustomOrderRequests }],
+    recentCustomOrderRows,
+  ] = await Promise.all([
     db.select({ totalUsers: count() }).from(usersTable).where(eq(usersTable.role, "customer")),
     db.select({ totalOrders: count() }).from(ordersTable),
     db.select({ totalRevenue: sum(ordersTable.total) }).from(ordersTable).where(eq(ordersTable.paymentStatus, "paid")),
@@ -22,6 +42,23 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res): Promise<void> =>
       .from(productsTable)
       .leftJoin(productImagesTable, and(eq(productImagesTable.productId, productsTable.id), eq(productImagesTable.isPrimary, true)))
       .where(eq(productsTable.isFeatured, true)).limit(5),
+    db.select({ totalCustomOrderRequests: count() }).from(customOrderRequestsTable),
+    db
+      .select({ pendingCustomOrderRequests: count() })
+      .from(customOrderRequestsTable)
+      .where(eq(customOrderRequestsTable.status, "pending")),
+    db
+      .select({
+        row: customOrderRequestsTable,
+        categoryName: categoriesTable.name,
+        userEmail: usersTable.email,
+        userName: usersTable.fullName,
+      })
+      .from(customOrderRequestsTable)
+      .leftJoin(categoriesTable, eq(customOrderRequestsTable.categoryId, categoriesTable.id))
+      .leftJoin(usersTable, eq(customOrderRequestsTable.userId, usersTable.id))
+      .orderBy(desc(customOrderRequestsTable.createdAt))
+      .limit(5),
   ]);
 
   res.json({
@@ -45,6 +82,17 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res): Promise<void> =>
       allowCustomSize: r.product.allowCustomSize, isActive: r.product.isActive, isFeatured: r.product.isFeatured,
       lowStockThreshold: r.product.lowStockThreshold, createdAt: r.product.createdAt.toISOString(),
       primaryImage: r.image?.imageUrl ?? null, category: null,
+    })),
+    totalCustomOrderRequests: totalCustomOrderRequests ?? 0,
+    pendingCustomOrderRequests: pendingCustomOrderRequests ?? 0,
+    recentCustomOrderRequests: recentCustomOrderRows.map((r) => ({
+      id: r.row.id,
+      status: r.row.status,
+      createdAt: r.row.createdAt.toISOString(),
+      userEmail: r.userEmail ?? null,
+      userName: r.userName ?? null,
+      categoryName: r.categoryName ?? null,
+      description: r.row.description ?? null,
     })),
   });
 });
@@ -120,23 +168,17 @@ router.get("/admin/orders", requireAdmin, async (req, res): Promise<void> => {
   });
 });
 
-// Upload signature
-router.get("/upload/signature", requireAdmin, (_req, res): void => {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME ?? "demo";
-  const apiKey = process.env.CLOUDINARY_API_KEY ?? "demo";
-  const apiSecret = process.env.CLOUDINARY_API_SECRET ?? "";
-  const timestamp = Math.round(Date.now() / 1000);
-  const folder = "label-dvisha";
-
-  let signature = "";
-  if (apiSecret) {
-    const crypto = require("crypto");
-    signature = crypto.createHash("sha1")
-      .update(`folder=${folder}&timestamp=${timestamp}${apiSecret}`)
-      .digest("hex");
+// Signed upload params for direct browser → Cloudinary uploads (any logged-in user)
+router.get("/upload/signature", requireAuth, (_req, res): void => {
+  const signed = createCloudinaryUploadSignature();
+  if (!signed) {
+    res.status(503).json({
+      error:
+        "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env",
+    });
+    return;
   }
-
-  res.json({ signature, timestamp, cloudName, apiKey, folder });
+  res.json(signed);
 });
 
 export default router;

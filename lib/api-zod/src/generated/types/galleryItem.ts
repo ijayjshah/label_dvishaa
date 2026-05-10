@@ -16,6 +16,5 @@ export interface GalleryItem {
   cloudinaryPublicId?: string | null;
   /** @nullable */
   caption?: string | null;
-  isApproved: boolean;
   createdAt: string;
 }

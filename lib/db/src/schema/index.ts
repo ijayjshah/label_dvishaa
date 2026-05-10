@@ -8,3 +8,5 @@ export * from "./orders";
 export * from "./banners";
 export * from "./gallery";
 export * from "./settings";
+export * from "./custom-order-requests";
+export * from "./contact-messages";

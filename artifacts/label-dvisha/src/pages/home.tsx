@@ -1,18 +1,17 @@
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
-import { useListBanners, useListProducts, useListCategories, useListGallery } from "@workspace/api-client-react";
+import { CustomOrderHomeSection } from "@/components/home/CustomOrderHomeSection";
+import { EditorialSection } from "@/components/home/EditorialSection";
+import { useListBanners, useListProducts, useListCategories } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { data: banners } = useListBanners();
   const { data: featuredData } = useListProducts({ featured: true, limit: 8 });
   const { data: categories } = useListCategories();
-  const { data: gallery } = useListGallery({ approved: true, page: 1 });
-
   const featured = featuredData?.data ?? [];
   const allCategories = (categories ?? []).filter(c => c.isActive).slice(0, 6);
-  const galleryItems = gallery?.data?.slice(0, 6) ?? [];
 
   const heroBanner = banners?.[0];
 
@@ -45,6 +44,8 @@ export default function Home() {
           </Button>
         </div>
       </section>
+
+      <CustomOrderHomeSection />
 
       {/* Categories */}
       {allCategories.length > 0 && (
@@ -112,33 +113,13 @@ export default function Home() {
         </section>
       )}
 
-      {/* Gallery section */}
-      {galleryItems.length > 0 && (
-        <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Our community</p>
-            <h2 className="font-serif text-3xl">Lookbook</h2>
-          </div>
-          <div className="columns-2 sm:columns-3 gap-3 space-y-3">
-            {galleryItems.map(item => (
-              <div key={item.id} className="break-inside-avoid" data-testid={`img-gallery-${item.id}`}>
-                <img src={item.imageUrl} alt={item.caption ?? "Gallery"} className="w-full object-cover" />
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Button variant="outline" asChild className="tracking-widest uppercase text-xs">
-              <Link href="/gallery">View Gallery</Link>
-            </Button>
-          </div>
-        </section>
-      )}
-
       {/* Brand tagline */}
-      <section className="py-20 px-6 bg-primary text-primary-foreground text-center">
+      <section id="about" className="py-20 px-6 bg-primary text-primary-foreground text-center scroll-mt-20">
         <p className="font-serif text-3xl sm:text-4xl mb-4">Every thread tells a story.</p>
         <p className="text-sm opacity-70 tracking-wider">Handcrafted womenswear, made in India.</p>
       </section>
+
+      <EditorialSection />
     </StorefrontLayout>
   );
 }

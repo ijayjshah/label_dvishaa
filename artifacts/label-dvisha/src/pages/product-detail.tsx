@@ -8,6 +8,7 @@ import {
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MeasurementGuideDialog } from "@/components/size-guide/MeasurementGuideDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -31,6 +32,7 @@ export default function ProductDetail() {
   const [measurements, setMeasurements] = useState<CustomMeasurements>({});
   const [quantity, setQuantity] = useState(1);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   const addToCart = useAddToCart({
     mutation: {
@@ -199,7 +201,13 @@ export default function ProductDetail() {
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs tracking-widest uppercase text-muted-foreground">Size</p>
-                  <button className="text-xs text-muted-foreground underline underline-offset-4">Size Guide</button>
+                  <button
+                    type="button"
+                    onClick={() => setSizeGuideOpen(true)}
+                    className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                  >
+                    Size Guide
+                  </button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {sizes.map(s => (
@@ -341,6 +349,8 @@ export default function ProductDetail() {
           </div>
         )}
       </div>
+
+      <MeasurementGuideDialog open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
     </StorefrontLayout>
   );
 }

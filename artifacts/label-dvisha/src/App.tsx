@@ -15,15 +15,19 @@ import Signup from "@/pages/signup";
 import OrdersPage from "@/pages/orders";
 import OrderDetailPage from "@/pages/order-detail";
 import GalleryPage from "@/pages/gallery";
+import CustomOrderPage from "@/pages/custom-order";
+import AboutPage from "@/pages/about";
+import ContactPage from "@/pages/contact";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
 import AdminCategories from "@/pages/admin/categories";
 import AdminOrders from "@/pages/admin/orders";
+import AdminCustomOrders from "@/pages/admin/custom-orders";
 import AdminUsers from "@/pages/admin/users";
 import AdminGallery from "@/pages/admin/gallery";
 import AdminBanners from "@/pages/admin/banners";
-import AdminSettings from "@/pages/admin/settings";
 import AdminSizes from "@/pages/admin/sizes";
+import AdminContactMessages from "@/pages/admin/contact-messages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +70,9 @@ function AppRoutes() {
         <RequireAuth><OrderDetailPage /></RequireAuth>
       </Route>
       <Route path="/gallery" component={GalleryPage} />
+      <Route path="/custom-order" component={CustomOrderPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/contact" component={ContactPage} />
       <Route path="/login">
         {user ? <Redirect to="/" /> : <Login />}
       </Route>
@@ -86,6 +93,12 @@ function AppRoutes() {
       <Route path="/admin/orders">
         <RequireAdmin><AdminOrders /></RequireAdmin>
       </Route>
+      <Route path="/admin/custom-orders">
+        <RequireAdmin><AdminCustomOrders /></RequireAdmin>
+      </Route>
+      <Route path="/admin/contact-messages">
+        <RequireAdmin><AdminContactMessages /></RequireAdmin>
+      </Route>
       <Route path="/admin/users">
         <RequireAdmin><AdminUsers /></RequireAdmin>
       </Route>
@@ -94,9 +107,6 @@ function AppRoutes() {
       </Route>
       <Route path="/admin/banners">
         <RequireAdmin><AdminBanners /></RequireAdmin>
-      </Route>
-      <Route path="/admin/settings">
-        <RequireAdmin><AdminSettings /></RequireAdmin>
       </Route>
       <Route path="/admin/sizes">
         <RequireAdmin><AdminSizes /></RequireAdmin>

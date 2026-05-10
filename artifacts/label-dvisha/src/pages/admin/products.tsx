@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageUrlWithCloudinaryUpload } from "@/components/ImageUrlWithCloudinaryUpload";
 import { Trash2, Plus, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 
 function emptyProduct() {
@@ -224,7 +225,9 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
   const deleteSize = useDeleteProductSize({ mutation: { onSuccess: invalidate, onError: () => toast({ title: "Failed", variant: "destructive" }) } });
 
   const [colorForm, setColorForm] = useState({ name: "", hexCode: "#000000" });
-  const [imageUrl, setImageUrl] = useState("");
+  const [newImage, setNewImage] = useState<{ imageUrl: string; cloudinaryPublicId?: string }>({
+    imageUrl: "",
+  });
   const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
 
   return (
@@ -262,18 +265,37 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
                 </div>
               ))}
             </div>
-            <div className="flex gap-2">
-              <Input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="Image URL..." className="text-xs" data-testid="input-image-url" />
+            <div className="space-y-2">
+              <ImageUrlWithCloudinaryUpload
+                label="Add image"
+                value={newImage}
+                onChange={setNewImage}
+                disabled={addImage.isPending}
+                data-testid="input-image-url"
+              />
               <Button
-                size="sm" variant="outline" className="text-xs"
+                size="sm"
+                variant="outline"
+                className="text-xs"
+                type="button"
                 onClick={() => {
-                  if (imageUrl) {
-                    addImage.mutate({ id: product.id, data: { imageUrl, isPrimary: (product.images ?? []).length === 0, sortOrder: (product.images ?? []).length } });
-                    setImageUrl("");
-                  }
+                  if (!newImage.imageUrl.trim()) return;
+                  addImage.mutate({
+                    id: product.id,
+                    data: {
+                      imageUrl: newImage.imageUrl.trim(),
+                      cloudinaryPublicId: newImage.cloudinaryPublicId,
+                      isPrimary: (product.images ?? []).length === 0,
+                      sortOrder: (product.images ?? []).length,
+                    },
+                  });
+                  setNewImage({ imageUrl: "" });
                 }}
+                disabled={addImage.isPending}
                 data-testid="button-add-image"
-              >Add</Button>
+              >
+                Add to product
+              </Button>
             </div>
           </div>
 
