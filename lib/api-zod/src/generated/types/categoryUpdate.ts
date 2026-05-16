@@ -14,4 +14,6 @@ export interface CategoryUpdate {
   cloudinaryPublicId?: string;
   sortOrder?: number;
   isActive?: boolean;
+  /** @nullable */
+  parentId?: number | null;
 }

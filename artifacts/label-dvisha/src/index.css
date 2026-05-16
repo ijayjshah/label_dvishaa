@@ -122,3 +122,24 @@
     @apply font-serif;
   }
 }
+
+@keyframes hero-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@layer utilities {
+  .animate-hero-kenburns {
+    animation: hero-kenburns 28s ease-in-out infinite alternate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-kenburns {
+    animation: none !important;
+  }
+}

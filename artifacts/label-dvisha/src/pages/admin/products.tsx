@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import {
   useListProducts, getListProductsQueryKey,
@@ -50,6 +50,14 @@ export default function AdminProducts() {
   const { data: allSizes } = useListSizes();
 
   const products = productsData?.data ?? [];
+
+  const categoryOptions = useMemo(() => {
+    const all = categories ?? [];
+    const roots = all.filter((c) => c.parentId == null).sort((a, b) => a.sortOrder - b.sortOrder);
+    const subs = all.filter((c) => c.parentId != null).sort((a, b) => a.sortOrder - b.sortOrder);
+    const parentName = (id: number) => all.find((x) => x.id === id)?.name ?? "?";
+    return { roots, subs, parentName };
+  }, [categories]);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
 
@@ -155,7 +163,20 @@ export default function AdminProducts() {
                   data-testid="select-category"
                 >
                   <option value="">Select category</option>
-                  {(categories ?? []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <optgroup label="Subcategories (recommended)">
+                    {categoryOptions.subs.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {categoryOptions.parentName(c.parentId!)} › {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Top-level collections">
+                    {categoryOptions.roots.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
               <div className="space-y-1.5">

@@ -8,6 +8,10 @@
 
 export type ListProductsParams = {
   categoryId?: number;
+  /**
+   * When set, include products in this parent category or any of its direct child categories
+   */
+  categoryParentId?: number;
   featured?: boolean;
   search?: string;
   page?: number;

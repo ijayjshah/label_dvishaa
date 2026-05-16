@@ -119,8 +119,15 @@ export interface Category {
   imageUrl?: string | null;
   /** @nullable */
   cloudinaryPublicId?: string | null;
+  /** @nullable */
+  parentId?: number | null;
   sortOrder: number;
   isActive: boolean;
+}
+
+export interface CategoryWithChildren {
+  category: Category;
+  children: Category[];
 }
 
 export interface CategoryInput {
@@ -130,6 +137,8 @@ export interface CategoryInput {
   imageUrl?: string;
   cloudinaryPublicId?: string;
   sortOrder?: number;
+  isActive?: boolean;
+  parentId?: number;
 }
 
 export interface CategoryUpdate {
@@ -140,6 +149,54 @@ export interface CategoryUpdate {
   cloudinaryPublicId?: string;
   sortOrder?: number;
   isActive?: boolean;
+  /** @nullable */
+  parentId?: number | null;
+}
+
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  /** @nullable */
+  excerpt?: string | null;
+  body: string;
+  /** @nullable */
+  featuredImageUrl?: string | null;
+  /** @nullable */
+  featuredImageCloudinaryPublicId?: string | null;
+  isPublished: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BlogPostInput {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  body: string;
+  featuredImageUrl?: string;
+  featuredImageCloudinaryPublicId?: string;
+  isPublished?: boolean;
+  sortOrder?: number;
+}
+
+export interface BlogPostUpdate {
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  body?: string;
+  featuredImageUrl?: string;
+  featuredImageCloudinaryPublicId?: string;
+  isPublished?: boolean;
+  sortOrder?: number;
+}
+
+export interface BlogPostListResponse {
+  data: BlogPost[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface ProductImage {
@@ -702,6 +759,10 @@ export interface ContactMessageListResponse {
 
 export type ListProductsParams = {
   categoryId?: number;
+  /**
+   * When set, include products in this parent category or any of its direct child categories
+   */
+  categoryParentId?: number;
   featured?: boolean;
   search?: string;
   page?: number;
@@ -736,4 +797,9 @@ export type ListAdminCustomOrderRequestsParams = {
 
 export type ListAdminContactMessagesParams = {
   page?: number;
+};
+
+export type ListBlogPostsParams = {
+  page?: number;
+  limit?: number;
 };

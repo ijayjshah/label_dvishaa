@@ -1,6 +1,8 @@
 import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { useListGallery } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 
 /** Masonry-style editorial grid of gallery images (admin-managed). */
 export function EditorialSection() {
@@ -18,15 +20,17 @@ export function EditorialSection() {
     >
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-12 sm:mb-14">
-          <h2
-            id="editorial-heading"
-            className="font-serif text-4xl sm:text-5xl md:text-[3.25rem] text-foreground tracking-tight mb-4"
-          >
-            Editorial
-          </h2>
-          <p className="font-sans text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Stories told through fabric and form
-          </p>
+          <Reveal>
+            <h2
+              id="editorial-heading"
+              className="font-serif text-4xl sm:text-5xl md:text-[3.25rem] text-foreground tracking-tight mb-4"
+            >
+              Editorial
+            </h2>
+            <p className="font-sans text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Stories told through fabric and form
+            </p>
+          </Reveal>
         </header>
 
         {isLoading ? (
@@ -40,18 +44,19 @@ export function EditorialSection() {
             ))}
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 md:columns-3 gap-4 sm:gap-5 [column-fill:_balance]">
-            {items.map((item, index) => (
-              <figure
+          <RevealStagger className="columns-1 sm:columns-2 md:columns-3 gap-4 sm:gap-5 [column-fill:_balance]" stagger={0.05}>
+            {items.map((item) => (
+              <motion.figure
                 key={item.id}
+                variants={revealItemVariants}
                 className="break-inside-avoid mb-4 sm:mb-5 rounded-xl overflow-hidden bg-muted/30 shadow-sm ring-1 ring-black/[0.04]"
                 data-testid={`editorial-gallery-${item.id}`}
               >
                 <div
                   className={
-                    index % 3 === 0
+                    item.id % 3 === 0
                       ? "aspect-[3/4] min-h-[200px]"
-                      : index % 3 === 1
+                      : item.id % 3 === 1
                         ? "aspect-[4/5] min-h-[220px]"
                         : "aspect-[5/6] min-h-[240px]"
                   }
@@ -64,17 +69,17 @@ export function EditorialSection() {
                     decoding="async"
                   />
                 </div>
-              </figure>
+              </motion.figure>
             ))}
-          </div>
+          </RevealStagger>
         )}
 
         {!isLoading && items.length > 0 && (
-          <div className="text-center mt-12">
+          <Reveal className="text-center mt-12">
             <Button variant="outline" asChild className="tracking-[0.2em] uppercase text-xs px-8 border-foreground/20 hover:bg-foreground/5">
               <Link href="/gallery">View gallery</Link>
             </Button>
-          </div>
+          </Reveal>
         )}
       </div>
     </section>

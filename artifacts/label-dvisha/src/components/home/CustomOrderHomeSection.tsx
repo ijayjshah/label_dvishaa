@@ -1,6 +1,8 @@
 import { Link } from "wouter";
 import { Upload, Sparkles, Gem, Compass } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 
 const BROWN = "#3C2A21";
 const CREAM = "#F5F5F5";
@@ -11,7 +13,7 @@ export function CustomOrderHomeSection() {
       <section className="text-white" style={{ backgroundColor: BROWN }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            <div>
+            <Reveal y={32} viewMargin="-80px 0px -40px 0px">
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium leading-tight mb-5">
                 Design Your Own Outfit
               </h2>
@@ -44,48 +46,50 @@ export function CustomOrderHomeSection() {
                   Start Customization
                 </Link>
               </Button>
-            </div>
-            <div
-              className="relative aspect-[4/5] max-h-[520px] mx-auto w-full rounded-2xl overflow-hidden bg-white/10 border border-white/10"
-              data-testid="custom-order-hero-visual"
-            >
-              <img
-                src="/custom-order-hero.png"
-                alt="Custom design"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            </div>
+            </Reveal>
+            <Reveal y={32} delay={0.1} viewMargin="-80px 0px -40px 0px">
+              <div
+                className="relative aspect-[4/5] max-h-[520px] mx-auto w-full rounded-2xl overflow-hidden bg-white/10 border border-white/10"
+                data-testid="custom-order-hero-visual"
+              >
+                <img
+                  src="/custom-order-hero.png"
+                  alt="Custom design"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <section className="py-14 sm:py-16 px-4 sm:px-6" style={{ backgroundColor: CREAM }}>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 md:gap-8 text-center md:text-left">
-          <div>
+        <RevealStagger className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 md:gap-8 text-center md:text-left" stagger={0.1}>
+          <motion.div variants={revealItemVariants}>
             <h3 className="font-serif text-xl sm:text-2xl mb-2" style={{ color: BROWN }}>
               Custom Fit
             </h3>
             <p className="font-sans text-sm leading-relaxed opacity-85" style={{ color: BROWN }}>
               Tailored precisely to your measurements
             </p>
-          </div>
-          <div>
+          </motion.div>
+          <motion.div variants={revealItemVariants}>
             <h3 className="font-serif text-xl sm:text-2xl mb-2" style={{ color: BROWN }}>
               Breathable Fabric
             </h3>
             <p className="font-sans text-sm leading-relaxed opacity-85" style={{ color: BROWN }}>
               Premium materials for all-day comfort
             </p>
-          </div>
-          <div>
+          </motion.div>
+          <motion.div variants={revealItemVariants}>
             <h3 className="font-serif text-xl sm:text-2xl mb-2" style={{ color: BROWN }}>
               Made to Order
             </h3>
             <p className="font-sans text-sm leading-relaxed opacity-85" style={{ color: BROWN }}>
               Sustainable, thoughtful production
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </RevealStagger>
       </section>
     </>
   );

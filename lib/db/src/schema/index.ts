@@ -10,3 +10,4 @@ export * from "./gallery";
 export * from "./settings";
 export * from "./custom-order-requests";
 export * from "./contact-messages";
+export * from "./blog-posts";

@@ -110,6 +110,7 @@ export const ListCategoriesResponseItem = zod.object({
   description: zod.string().nullish(),
   imageUrl: zod.string().nullish(),
   cloudinaryPublicId: zod.string().nullish(),
+  parentId: zod.number().nullish(),
   sortOrder: zod.number(),
   isActive: zod.boolean(),
 });
@@ -122,6 +123,8 @@ export const CreateCategoryBody = zod.object({
   imageUrl: zod.string().optional(),
   cloudinaryPublicId: zod.string().optional(),
   sortOrder: zod.number().optional(),
+  isActive: zod.boolean().optional(),
+  parentId: zod.number().optional(),
 });
 
 export const GetCategoryParams = zod.object({
@@ -135,6 +138,7 @@ export const GetCategoryResponse = zod.object({
   description: zod.string().nullish(),
   imageUrl: zod.string().nullish(),
   cloudinaryPublicId: zod.string().nullish(),
+  parentId: zod.number().nullish(),
   sortOrder: zod.number(),
   isActive: zod.boolean(),
 });
@@ -151,6 +155,7 @@ export const UpdateCategoryBody = zod.object({
   cloudinaryPublicId: zod.string().optional(),
   sortOrder: zod.number().optional(),
   isActive: zod.boolean().optional(),
+  parentId: zod.number().nullish(),
 });
 
 export const UpdateCategoryResponse = zod.object({
@@ -160,6 +165,7 @@ export const UpdateCategoryResponse = zod.object({
   description: zod.string().nullish(),
   imageUrl: zod.string().nullish(),
   cloudinaryPublicId: zod.string().nullish(),
+  parentId: zod.number().nullish(),
   sortOrder: zod.number(),
   isActive: zod.boolean(),
 });
@@ -168,8 +174,45 @@ export const DeleteCategoryParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const GetCategoryBySlugParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+export const GetCategoryBySlugResponse = zod.object({
+  category: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    slug: zod.string(),
+    description: zod.string().nullish(),
+    imageUrl: zod.string().nullish(),
+    cloudinaryPublicId: zod.string().nullish(),
+    parentId: zod.number().nullish(),
+    sortOrder: zod.number(),
+    isActive: zod.boolean(),
+  }),
+  children: zod.array(
+    zod.object({
+      id: zod.number(),
+      name: zod.string(),
+      slug: zod.string(),
+      description: zod.string().nullish(),
+      imageUrl: zod.string().nullish(),
+      cloudinaryPublicId: zod.string().nullish(),
+      parentId: zod.number().nullish(),
+      sortOrder: zod.number(),
+      isActive: zod.boolean(),
+    }),
+  ),
+});
+
 export const ListProductsQueryParams = zod.object({
   categoryId: zod.coerce.number().optional(),
+  categoryParentId: zod.coerce
+    .number()
+    .optional()
+    .describe(
+      "When set, include products in this parent category or any of its direct child categories",
+    ),
   featured: zod.coerce.boolean().optional(),
   search: zod.coerce.string().optional(),
   page: zod.coerce.number().optional(),
@@ -205,6 +248,7 @@ export const ListProductsResponse = zod.object({
           description: zod.string().nullish(),
           imageUrl: zod.string().nullish(),
           cloudinaryPublicId: zod.string().nullish(),
+          parentId: zod.number().nullish(),
           sortOrder: zod.number(),
           isActive: zod.boolean(),
         })
@@ -264,6 +308,7 @@ export const GetProductResponse = zod.object({
       description: zod.string().nullish(),
       imageUrl: zod.string().nullish(),
       cloudinaryPublicId: zod.string().nullish(),
+      parentId: zod.number().nullish(),
       sortOrder: zod.number(),
       isActive: zod.boolean(),
     })
@@ -386,6 +431,7 @@ export const UpdateProductResponse = zod.object({
       description: zod.string().nullish(),
       imageUrl: zod.string().nullish(),
       cloudinaryPublicId: zod.string().nullish(),
+      parentId: zod.number().nullish(),
       sortOrder: zod.number(),
       isActive: zod.boolean(),
     })
@@ -593,6 +639,7 @@ export const GetCartResponse = zod.object({
               description: zod.string().nullish(),
               imageUrl: zod.string().nullish(),
               cloudinaryPublicId: zod.string().nullish(),
+              parentId: zod.number().nullish(),
               sortOrder: zod.number(),
               isActive: zod.boolean(),
             })
@@ -686,6 +733,7 @@ export const UpdateCartItemResponse = zod.object({
               description: zod.string().nullish(),
               imageUrl: zod.string().nullish(),
               cloudinaryPublicId: zod.string().nullish(),
+              parentId: zod.number().nullish(),
               sortOrder: zod.number(),
               isActive: zod.boolean(),
             })
@@ -750,6 +798,7 @@ export const RemoveCartItemResponse = zod.object({
               description: zod.string().nullish(),
               imageUrl: zod.string().nullish(),
               cloudinaryPublicId: zod.string().nullish(),
+              parentId: zod.number().nullish(),
               sortOrder: zod.number(),
               isActive: zod.boolean(),
             })
@@ -810,6 +859,7 @@ export const ClearCartResponse = zod.object({
               description: zod.string().nullish(),
               imageUrl: zod.string().nullish(),
               cloudinaryPublicId: zod.string().nullish(),
+              parentId: zod.number().nullish(),
               sortOrder: zod.number(),
               isActive: zod.boolean(),
             })
@@ -1162,6 +1212,7 @@ export const GetAdminDashboardResponse = zod.object({
           description: zod.string().nullish(),
           imageUrl: zod.string().nullish(),
           cloudinaryPublicId: zod.string().nullish(),
+          parentId: zod.number().nullish(),
           sortOrder: zod.number(),
           isActive: zod.boolean(),
         })
@@ -1422,6 +1473,112 @@ export const ListAdminContactMessagesResponse = zod.object({
   total: zod.number(),
   page: zod.number(),
   limit: zod.number(),
+});
+
+export const ListBlogPostsQueryParams = zod.object({
+  page: zod.coerce.number().optional(),
+  limit: zod.coerce.number().optional(),
+});
+
+export const ListBlogPostsResponse = zod.object({
+  data: zod.array(
+    zod.object({
+      id: zod.number(),
+      title: zod.string(),
+      slug: zod.string(),
+      excerpt: zod.string().nullish(),
+      body: zod.string(),
+      featuredImageUrl: zod.string().nullish(),
+      featuredImageCloudinaryPublicId: zod.string().nullish(),
+      isPublished: zod.boolean(),
+      sortOrder: zod.number(),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+    }),
+  ),
+  total: zod.number(),
+  page: zod.number(),
+  limit: zod.number(),
+});
+
+export const CreateBlogPostBody = zod.object({
+  title: zod.string(),
+  slug: zod.string(),
+  excerpt: zod.string().optional(),
+  body: zod.string(),
+  featuredImageUrl: zod.string().optional(),
+  featuredImageCloudinaryPublicId: zod.string().optional(),
+  isPublished: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+});
+
+export const GetBlogPostBySlugParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+export const GetBlogPostBySlugResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  excerpt: zod.string().nullish(),
+  body: zod.string(),
+  featuredImageUrl: zod.string().nullish(),
+  featuredImageCloudinaryPublicId: zod.string().nullish(),
+  isPublished: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const GetBlogPostParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetBlogPostResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  excerpt: zod.string().nullish(),
+  body: zod.string(),
+  featuredImageUrl: zod.string().nullish(),
+  featuredImageCloudinaryPublicId: zod.string().nullish(),
+  isPublished: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateBlogPostParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateBlogPostBody = zod.object({
+  title: zod.string().optional(),
+  slug: zod.string().optional(),
+  excerpt: zod.string().optional(),
+  body: zod.string().optional(),
+  featuredImageUrl: zod.string().optional(),
+  featuredImageCloudinaryPublicId: zod.string().optional(),
+  isPublished: zod.boolean().optional(),
+  sortOrder: zod.number().optional(),
+});
+
+export const UpdateBlogPostResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  slug: zod.string(),
+  excerpt: zod.string().nullish(),
+  body: zod.string(),
+  featuredImageUrl: zod.string().nullish(),
+  featuredImageCloudinaryPublicId: zod.string().nullish(),
+  isPublished: zod.boolean(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const DeleteBlogPostParams = zod.object({
+  id: zod.coerce.number(),
 });
 
 export const ListSettingsResponseItem = zod.object({

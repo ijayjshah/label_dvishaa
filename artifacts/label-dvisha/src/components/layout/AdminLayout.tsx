@@ -13,6 +13,7 @@ import {
   Home,
   LogOut,
   Menu,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/admin/gallery", label: "Gallery", icon: Image },
   { href: "/admin/banners", label: "Banners", icon: Megaphone },
   { href: "/admin/sizes", label: "Sizes", icon: Ruler },
+  { href: "/admin/blogs", label: "Blog", icon: BookOpen },
 ];
 
 interface AdminLayoutProps {

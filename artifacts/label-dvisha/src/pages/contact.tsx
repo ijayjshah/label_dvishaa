@@ -1,5 +1,7 @@
 import { useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
+import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 import { useListSettings, useCreateContactMessage } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -107,15 +109,18 @@ export default function ContactPage() {
   return (
     <StorefrontLayout>
       <div id="contact" className="min-h-[calc(100vh-4rem)] font-sans scroll-mt-20" style={{ backgroundColor: BG }}>
-        <section className="pt-12 sm:pt-16 pb-10 px-4 sm:px-6 text-center max-w-3xl mx-auto">
-          <h1 className="font-serif text-4xl sm:text-5xl text-foreground tracking-tight mb-4">Get in Touch</h1>
-          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
-            Have a question or want to start your custom order? We&apos;d love to hear from you.
-          </p>
-        </section>
+        <Reveal>
+          <section className="pt-12 sm:pt-16 pb-10 px-4 sm:px-6 text-center max-w-3xl mx-auto">
+            <h1 className="font-serif text-4xl sm:text-5xl text-foreground tracking-tight mb-4">Get in Touch</h1>
+            <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+              Have a question or want to start your custom order? We&apos;d love to hear from you.
+            </p>
+          </section>
+        </Reveal>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-20 grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Form */}
+          <Reveal y={20}>
           <div
             className="rounded-2xl border border-border/60 shadow-sm p-6 sm:p-8"
             style={{ backgroundColor: cardBg }}
@@ -156,13 +161,15 @@ export default function ContactPage() {
               </Button>
             </form>
           </div>
+          </Reveal>
 
           {/* Sidebar */}
+          <Reveal y={20} delay={0.1}>
           <div className="space-y-6">
             <div>
               <h2 className="font-serif text-2xl text-foreground mb-5">Contact Information</h2>
-              <ul className="space-y-5">
-                <li className="flex gap-4">
+              <RevealStagger className="space-y-5" stagger={0.07}>
+                <motion.div variants={revealItemVariants} className="flex gap-4">
                   <div className={iconWrap}>
                     <Mail className="h-5 w-5" strokeWidth={1.5} />
                   </div>
@@ -172,8 +179,8 @@ export default function ContactPage() {
                       {displayEmail}
                     </a>
                   </div>
-                </li>
-                <li className="flex gap-4">
+                </motion.div>
+                <motion.div variants={revealItemVariants} className="flex gap-4">
                   <div className={iconWrap}>
                     <Phone className="h-5 w-5" strokeWidth={1.5} />
                   </div>
@@ -183,8 +190,8 @@ export default function ContactPage() {
                       {displayPhone}
                     </a>
                   </div>
-                </li>
-                <li className="flex gap-4">
+                </motion.div>
+                <motion.div variants={revealItemVariants} className="flex gap-4">
                   <div className={iconWrap}>
                     <Instagram className="h-5 w-5" strokeWidth={1.5} />
                   </div>
@@ -194,8 +201,8 @@ export default function ContactPage() {
                       {instagramHandle}
                     </a>
                   </div>
-                </li>
-                <li className="flex gap-4">
+                </motion.div>
+                <motion.div variants={revealItemVariants} className="flex gap-4">
                   <div className={iconWrap}>
                     <MapPin className="h-5 w-5" strokeWidth={1.5} />
                   </div>
@@ -203,8 +210,8 @@ export default function ContactPage() {
                     <p className="text-xs uppercase tracking-wider text-muted-foreground mb-0.5">Location</p>
                     <p className="text-sm text-foreground">{displayAddress}</p>
                   </div>
-                </li>
-              </ul>
+                </motion.div>
+              </RevealStagger>
             </div>
 
             <div
@@ -229,6 +236,7 @@ export default function ContactPage() {
               </p>
             </div>
           </div>
+          </Reveal>
         </div>
       </div>
     </StorefrontLayout>

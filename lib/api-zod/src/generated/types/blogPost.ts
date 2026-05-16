@@ -6,18 +6,19 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface Category {
+export interface BlogPost {
   id: number;
-  name: string;
+  title: string;
   slug: string;
   /** @nullable */
-  description?: string | null;
+  excerpt?: string | null;
+  body: string;
   /** @nullable */
-  imageUrl?: string | null;
+  featuredImageUrl?: string | null;
   /** @nullable */
-  cloudinaryPublicId?: string | null;
-  /** @nullable */
-  parentId?: number | null;
+  featuredImageCloudinaryPublicId?: string | null;
+  isPublished: boolean;
   sortOrder: number;
-  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

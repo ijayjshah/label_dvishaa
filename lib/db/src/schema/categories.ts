@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, timestamp, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,6 +9,7 @@ export const categoriesTable = pgTable("categories", {
   description: text("description"),
   imageUrl: text("image_url"),
   cloudinaryPublicId: text("cloudinary_public_id"),
+  parentId: integer("parent_id").references((): AnyPgColumn => categoriesTable.id, { onDelete: "restrict" }),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

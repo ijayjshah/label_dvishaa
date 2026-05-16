@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { useListSettings } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,17 @@ export function Footer() {
 
   const muted = "text-[#EDE8E0]/75";
   const hoverLink = "transition-colors hover:text-[#EDE8E0]";
+  const reduceMotion = useReducedMotion();
 
   return (
-    <footer id="contact" className="mt-20 bg-[#2D1E17] text-[#EDE8E0] font-sans antialiased scroll-mt-20">
+    <motion.footer
+      id="contact"
+      className="mt-20 bg-[#2D1E17] text-[#EDE8E0] font-sans antialiased scroll-mt-20"
+      initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: reduceMotion ? 0 : 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-10 lg:gap-x-8">
           <div className="space-y-4">
@@ -88,7 +97,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <span className="opacity-80">Journal</span>
+                <Link href="/blogs" className={hoverLink}>
+                  Journal
+                </Link>
               </li>
               <li>
                 <Link href="/contact" className={hoverLink}>
@@ -102,7 +113,7 @@ export function Footer() {
             <h3 className="font-serif text-lg font-medium mb-5 text-[#EDE8E0]">Customer Care</h3>
             <ul className={`space-y-3 text-sm ${muted}`}>
               {[
-                { label: "FAQ", href: "/#" },
+                { label: "FAQ", href: "/about#faqs" },
                 { label: "Shipping & Delivery", href: "/#" },
                 { label: "Returns & Exchange", href: "/#" },
                 { label: "Size Guide", href: "/#" },
@@ -187,6 +198,6 @@ export function Footer() {
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

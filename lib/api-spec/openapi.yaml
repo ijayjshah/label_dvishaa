@@ -21,6 +21,7 @@ tags:
   - name: settings
   - name: custom-orders
   - name: contact
+  - name: blogs
 
 paths:
   /healthz:
@@ -249,6 +250,26 @@ paths:
         "204":
           description: Deleted
 
+  /categories/by-slug/{slug}:
+    get:
+      operationId: getCategoryBySlug
+      tags: [categories]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Root category with child categories
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryWithChildren"
+        "404":
+          description: Not found
+
   # ── PRODUCTS ──────────────────────────────────────────────────────────────
   /products:
     get:
@@ -257,6 +278,11 @@ paths:
       parameters:
         - name: categoryId
           in: query
+          schema:
+            type: integer
+        - name: categoryParentId
+          in: query
+          description: When set, include products in this parent category or any of its direct child categories
           schema:
             type: integer
         - name: featured
@@ -1209,6 +1235,122 @@ paths:
               schema:
                 $ref: "#/components/schemas/ContactMessageListResponse"
 
+  # ── BLOG ───────────────────────────────────────────────────────────────────
+  /blog-posts:
+    get:
+      operationId: listBlogPosts
+      tags: [blogs]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPostListResponse"
+    post:
+      operationId: createBlogPost
+      tags: [blogs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "400":
+          description: Validation error
+
+  /blog-posts/slug/{slug}:
+    get:
+      operationId: getBlogPostBySlug
+      tags: [blogs]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+
+  /blog-posts/{id}:
+    get:
+      operationId: getBlogPost
+      tags: [blogs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateBlogPost
+      tags: [blogs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteBlogPost
+      tags: [blogs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   # ── SETTINGS ──────────────────────────────────────────────────────────────
   /settings:
     get:
@@ -1424,10 +1566,23 @@ components:
           type: ["string", "null"]
         cloudinaryPublicId:
           type: ["string", "null"]
+        parentId:
+          type: ["integer", "null"]
         sortOrder:
           type: integer
         isActive:
           type: boolean
+
+    CategoryWithChildren:
+      type: object
+      required: [category, children]
+      properties:
+        category:
+          $ref: "#/components/schemas/Category"
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
 
     CategoryInput:
       type: object
@@ -1444,6 +1599,10 @@ components:
         cloudinaryPublicId:
           type: string
         sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+        parentId:
           type: integer
 
     CategoryUpdate:
@@ -1463,6 +1622,93 @@ components:
           type: integer
         isActive:
           type: boolean
+        parentId:
+          type: ["integer", "null"]
+
+    BlogPost:
+      type: object
+      required: [id, title, slug, body, isPublished, sortOrder, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: ["string", "null"]
+        body:
+          type: string
+        featuredImageUrl:
+          type: ["string", "null"]
+        featuredImageCloudinaryPublicId:
+          type: ["string", "null"]
+        isPublished:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BlogPostInput:
+      type: object
+      required: [title, slug, body]
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        body:
+          type: string
+        featuredImageUrl:
+          type: string
+        featuredImageCloudinaryPublicId:
+          type: string
+        isPublished:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    BlogPostUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        body:
+          type: string
+        featuredImageUrl:
+          type: string
+        featuredImageCloudinaryPublicId:
+          type: string
+        isPublished:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    BlogPostListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
 
     # Products
     ProductImage:

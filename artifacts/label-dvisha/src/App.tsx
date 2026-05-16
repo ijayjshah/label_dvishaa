@@ -18,6 +18,9 @@ import GalleryPage from "@/pages/gallery";
 import CustomOrderPage from "@/pages/custom-order";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
+import CollectionPage from "@/pages/collection";
+import BlogsPage from "@/pages/blogs";
+import BlogPostPage from "@/pages/blog-post";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminProducts from "@/pages/admin/products";
 import AdminCategories from "@/pages/admin/categories";
@@ -28,6 +31,7 @@ import AdminGallery from "@/pages/admin/gallery";
 import AdminBanners from "@/pages/admin/banners";
 import AdminSizes from "@/pages/admin/sizes";
 import AdminContactMessages from "@/pages/admin/contact-messages";
+import AdminBlogs from "@/pages/admin/blogs";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +63,9 @@ function AppRoutes() {
       <Route path="/" component={Home} />
       <Route path="/products" component={Products} />
       <Route path="/products/:id" component={ProductDetail} />
+      <Route path="/collections/:slug" component={CollectionPage} />
+      <Route path="/blogs/:slug" component={BlogPostPage} />
+      <Route path="/blogs" component={BlogsPage} />
       <Route path="/cart" component={CartPage} />
       <Route path="/checkout">
         <RequireAuth><Checkout /></RequireAuth>
@@ -110,6 +117,9 @@ function AppRoutes() {
       </Route>
       <Route path="/admin/sizes">
         <RequireAdmin><AdminSizes /></RequireAdmin>
+      </Route>
+      <Route path="/admin/blogs">
+        <RequireAdmin><AdminBlogs /></RequireAdmin>
       </Route>
 
       <Route component={NotFound} />

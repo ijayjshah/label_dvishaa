@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, productsTable, productImagesTable, productColorsTable, productSizesTable, productSectionsTable, categoriesTable, sizesTable, reviewsTable, usersTable } from "@workspace/db";
-import { eq, and, ilike, desc, asc, count, sql } from "drizzle-orm";
+import { eq, and, or, inArray, ilike, desc, asc, count } from "drizzle-orm";
 import { requireAdmin, optionalAuth } from "../lib/auth";
 import {
   CreateProductBody, UpdateProductBody, UpdateProductParams, DeleteProductParams, GetProductParams,
@@ -16,12 +16,30 @@ const router: Router = Router();
 // List products
 router.get("/products", optionalAuth, async (req, res): Promise<void> => {
   const qp = ListProductsQueryParams.safeParse(req.query);
-  const { categoryId, featured, search, page = 1, limit = 20 } = qp.success ? qp.data : { categoryId: undefined, featured: undefined, search: undefined, page: 1, limit: 20 };
+  const { categoryId, categoryParentId, featured, search, page = 1, limit = 20 } = qp.success
+    ? qp.data
+    : { categoryId: undefined, categoryParentId: undefined, featured: undefined, search: undefined, page: 1, limit: 20 };
 
   const conditions: any[] = [];
   const user = (req as any).user;
   if (!user || user.role !== "admin") conditions.push(eq(productsTable.isActive, true));
-  if (categoryId) conditions.push(eq(productsTable.categoryId, categoryId));
+  if (categoryParentId != null && !Number.isNaN(Number(categoryParentId))) {
+    const subs = await db
+      .select({ id: categoriesTable.id })
+      .from(categoriesTable)
+      .where(eq(categoriesTable.parentId, categoryParentId));
+    const childIds = subs.map((s) => s.id);
+    if (childIds.length > 0) {
+      conditions.push(
+        or(eq(productsTable.categoryId, categoryParentId), inArray(productsTable.categoryId, childIds)),
+      );
+    } else {
+      conditions.push(eq(productsTable.categoryId, categoryParentId));
+    }
+  }
+  if (categoryId != null && !Number.isNaN(Number(categoryId))) {
+    conditions.push(eq(productsTable.categoryId, categoryId));
+  }
   if (featured) conditions.push(eq(productsTable.isFeatured, true));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
 
@@ -233,7 +251,19 @@ function formatProduct(p: any, cat: any, primaryImage: string | null) {
     lowStockThreshold: p.lowStockThreshold,
     createdAt: p.createdAt.toISOString(),
     primaryImage,
-    category: cat ? { id: cat.id, name: cat.name, slug: cat.slug, description: cat.description ?? null, imageUrl: cat.imageUrl ?? null, cloudinaryPublicId: cat.cloudinaryPublicId ?? null, sortOrder: cat.sortOrder, isActive: cat.isActive } : null,
+    category: cat
+      ? {
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          description: cat.description ?? null,
+          imageUrl: cat.imageUrl ?? null,
+          cloudinaryPublicId: cat.cloudinaryPublicId ?? null,
+          parentId: cat.parentId ?? null,
+          sortOrder: cat.sortOrder,
+          isActive: cat.isActive,
+        }
+      : null,
   };
 }
 

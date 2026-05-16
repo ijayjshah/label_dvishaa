@@ -13,4 +13,6 @@ export interface CategoryInput {
   imageUrl?: string;
   cloudinaryPublicId?: string;
   sortOrder?: number;
+  isActive?: boolean;
+  parentId?: number;
 }

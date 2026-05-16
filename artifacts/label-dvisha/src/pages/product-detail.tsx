@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
+import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 import {
   useGetProduct, getGetProductQueryKey,
   useAddToCart, getGetCartQueryKey,
@@ -107,20 +109,23 @@ export default function ProductDetail() {
     <StorefrontLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-8">
-          <button onClick={() => setLocation("/products")} className="hover:text-foreground transition-colors">Collections</button>
-          <span>/</span>
-          {product.category && (
-            <>
-              <button onClick={() => setLocation(`/products?categoryId=${product.categoryId}`)} className="hover:text-foreground transition-colors">{product.category.name}</button>
-              <span>/</span>
-            </>
-          )}
-          <span className="text-foreground">{product.name}</span>
-        </div>
+        <Reveal className="mb-8">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <button onClick={() => setLocation("/products")} className="hover:text-foreground transition-colors">Collections</button>
+            <span>/</span>
+            {product.category && (
+              <>
+                <button onClick={() => setLocation(`/products?categoryId=${product.categoryId}`)} className="hover:text-foreground transition-colors">{product.category.name}</button>
+                <span>/</span>
+              </>
+            )}
+            <span className="text-foreground">{product.name}</span>
+          </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
           {/* Images */}
+          <Reveal y={24}>
           <div>
             <div className="aspect-[3/4] bg-muted overflow-hidden mb-3">
               {currentImage ? (
@@ -144,8 +149,10 @@ export default function ProductDetail() {
               </div>
             )}
           </div>
+          </Reveal>
 
           {/* Details */}
+          <Reveal y={24} delay={0.08}>
           <div>
             {product.category && (
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">{product.category.name}</p>
@@ -324,15 +331,16 @@ export default function ProductDetail() {
               </div>
             )}
           </div>
+          </Reveal>
         </div>
 
         {/* Reviews */}
         {reviews.length > 0 && (
-          <div className="mt-16 border-t border-border pt-10">
+          <Reveal className="mt-16 border-t border-border pt-10" y={20}>
             <h2 className="font-serif text-2xl mb-6">Customer Reviews</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <RevealStagger className="grid grid-cols-1 sm:grid-cols-2 gap-6" stagger={0.06}>
               {reviews.map((r: any) => (
-                <div key={r.id} className="p-5 border border-border" data-testid={`card-review-${r.id}`}>
+                <motion.div key={r.id} variants={revealItemVariants} className="p-5 border border-border" data-testid={`card-review-${r.id}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -343,10 +351,10 @@ export default function ProductDetail() {
                   </div>
                   {r.title && <p className="text-sm font-medium mb-1">{r.title}</p>}
                   {r.body && <p className="text-sm text-muted-foreground">{r.body}</p>}
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </RevealStagger>
+          </Reveal>
         )}
       </div>
 

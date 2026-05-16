@@ -13,6 +13,7 @@ import settingsRouter from "./settings";
 import adminRouter from "./admin";
 import customOrderRequestsRouter from "./custom-order-requests";
 import contactMessagesRouter from "./contact-messages";
+import blogPostsRouter from "./blog-posts";
 
 const router: IRouter = Router();
 
@@ -29,6 +30,7 @@ router.use(galleryRouter);
 router.use(settingsRouter);
 router.use(customOrderRequestsRouter);
 router.use(contactMessagesRouter);
+router.use(blogPostsRouter);
 router.use(adminRouter);
 
 export default router;

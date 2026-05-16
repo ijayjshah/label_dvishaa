@@ -1,17 +1,21 @@
 import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
 import { CustomOrderHomeSection } from "@/components/home/CustomOrderHomeSection";
 import { EditorialSection } from "@/components/home/EditorialSection";
+import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 import { useListBanners, useListProducts, useListCategories } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const reduceMotion = useReducedMotion();
   const { data: banners } = useListBanners();
   const { data: featuredData } = useListProducts({ featured: true, limit: 8 });
   const { data: categories } = useListCategories();
   const featured = featuredData?.data ?? [];
-  const allCategories = (categories ?? []).filter(c => c.isActive).slice(0, 6);
+  const allCategories = (categories ?? []).filter(c => c.isActive);
+  const rootCategories = allCategories.filter((c) => c.parentId == null).slice(0, 6);
 
   const heroBanner = banners?.[0];
 
@@ -20,63 +24,108 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-primary text-primary-foreground min-h-[70vh] flex items-center">
         {heroBanner?.imageUrl ? (
-          <img src={heroBanner.imageUrl} alt={heroBanner.title} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+          <img
+            src={heroBanner.imageUrl}
+            alt={heroBanner.title}
+            className={`absolute inset-0 w-full h-full object-cover opacity-50 ${!reduceMotion ? "animate-hero-kenburns" : ""}`}
+          />
         ) : (
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(ellipse at 30% 60%, hsl(40 60% 80%) 0%, transparent 70%)" }} />
         )}
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 text-center">
-          <p className="text-xs tracking-[0.3em] uppercase mb-4 opacity-70">New Collection</p>
-          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight">
-            {heroBanner?.title ?? "Wear Your Story"}
-          </h1>
-          {heroBanner?.subtitle && (
-            <p className="text-lg opacity-80 mb-8 max-w-md mx-auto">{heroBanner.subtitle}</p>
+          {reduceMotion ? (
+            <>
+              <p className="text-xs tracking-[0.3em] uppercase mb-4 opacity-70">New Collection</p>
+              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight">
+                {heroBanner?.title ?? "Wear Your Story"}
+              </h1>
+              {heroBanner?.subtitle && (
+                <p className="text-lg opacity-80 mb-8 max-w-md mx-auto">{heroBanner.subtitle}</p>
+              )}
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary tracking-widest uppercase text-xs"
+              >
+                <Link href={heroBanner?.linkUrl ?? "/products"}>
+                  Explore Collections <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.11, delayChildren: 0.08 } },
+              }}
+            >
+              <motion.p
+                variants={revealItemVariants}
+                className="text-xs tracking-[0.3em] uppercase mb-4 opacity-70"
+              >
+                New Collection
+              </motion.p>
+              <motion.h1 variants={revealItemVariants} className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight">
+                {heroBanner?.title ?? "Wear Your Story"}
+              </motion.h1>
+              {heroBanner?.subtitle && (
+                <motion.p variants={revealItemVariants} className="text-lg opacity-80 mb-8 max-w-md mx-auto">
+                  {heroBanner.subtitle}
+                </motion.p>
+              )}
+              <motion.div variants={revealItemVariants}>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary tracking-widest uppercase text-xs"
+                >
+                  <Link href={heroBanner?.linkUrl ?? "/products"}>
+                    Explore Collections <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </motion.div>
+            </motion.div>
           )}
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary tracking-widest uppercase text-xs"
-          >
-            <Link href={heroBanner?.linkUrl ?? "/products"}>
-              Explore Collections <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
         </div>
       </section>
 
       <CustomOrderHomeSection />
 
       {/* Categories */}
-      {allCategories.length > 0 && (
+      {rootCategories.length > 0 && (
         <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-          <div className="text-center mb-10">
+          <Reveal className="text-center mb-10">
             <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Browse by</p>
             <h2 className="font-serif text-3xl">Collections</h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {allCategories.map(cat => (
-              <Link
-                key={cat.id}
-                href={`/products?categoryId=${cat.id}`}
-                className="group relative overflow-hidden bg-muted aspect-[4/3] flex items-end p-4"
-                data-testid={`link-category-${cat.id}`}
-              >
-                {cat.imageUrl && (
-                  <img src={cat.imageUrl} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <span className="relative z-10 font-serif text-white text-lg">{cat.name}</span>
-              </Link>
+          </Reveal>
+          <RevealStagger className="grid grid-cols-2 sm:grid-cols-3 gap-4" stagger={0.08}>
+            {rootCategories.map(cat => (
+              <motion.div key={cat.id} variants={revealItemVariants}>
+                <Link
+                  href={`/collections/${cat.slug}`}
+                  className="group relative overflow-hidden bg-muted aspect-[4/3] flex items-end p-4 rounded-lg ring-1 ring-black/[0.04] shadow-sm"
+                  data-testid={`link-category-${cat.id}`}
+                >
+                  {cat.imageUrl && (
+                    <img src={cat.imageUrl} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <span className="relative z-10 font-serif text-white text-lg">{cat.name}</span>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </RevealStagger>
         </section>
       )}
 
       {/* Featured Products */}
       {featured.length > 0 && (
         <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-10">
+          <Reveal className="flex items-end justify-between mb-10">
             <div>
               <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Curated for you</p>
               <h2 className="font-serif text-3xl">Featured Pieces</h2>
@@ -84,40 +133,45 @@ export default function Home() {
             <Link href="/products" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors hidden sm:block">
               View all
             </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          </Reveal>
+          <RevealStagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" stagger={0.06}>
             {featured.map(product => (
-              <ProductCard key={product.id} product={product} />
+              <motion.div key={product.id} variants={revealItemVariants}>
+                <ProductCard product={product} />
+              </motion.div>
             ))}
-          </div>
-          <div className="text-center mt-10 sm:hidden">
+          </RevealStagger>
+          <Reveal className="text-center mt-10 sm:hidden">
             <Button variant="outline" asChild className="tracking-widest uppercase text-xs">
               <Link href="/products">View All</Link>
             </Button>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* Banner strip */}
       {banners && banners.length > 1 && (
-        <section className="py-12 bg-secondary">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">{banners[1].subtitle ?? "Special"}</p>
-            <h2 className="font-serif text-3xl mb-4">{banners[1].title}</h2>
-            {banners[1].linkUrl && (
-              <Button asChild variant="default" className="tracking-widest uppercase text-xs">
-                <Link href={banners[1].linkUrl}>Shop Now</Link>
-              </Button>
-            )}
-          </div>
-        </section>
+        <Reveal y={20}>
+          <section className="py-12 bg-secondary">
+            <div className="max-w-7xl mx-auto px-6 text-center">
+              <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">{banners[1].subtitle ?? "Special"}</p>
+              <h2 className="font-serif text-3xl mb-4">{banners[1].title}</h2>
+              {banners[1].linkUrl && (
+                <Button asChild variant="default" className="tracking-widest uppercase text-xs">
+                  <Link href={banners[1].linkUrl}>Shop Now</Link>
+                </Button>
+              )}
+            </div>
+          </section>
+        </Reveal>
       )}
 
-      {/* Brand tagline */}
-      <section id="about" className="py-20 px-6 bg-primary text-primary-foreground text-center scroll-mt-20">
-        <p className="font-serif text-3xl sm:text-4xl mb-4">Every thread tells a story.</p>
-        <p className="text-sm opacity-70 tracking-wider">Handcrafted womenswear, made in India.</p>
-      </section>
+      <Reveal y={16}>
+        <section id="about" className="py-20 px-6 bg-primary text-primary-foreground text-center scroll-mt-20">
+          <p className="font-serif text-3xl sm:text-4xl mb-4">Every thread tells a story.</p>
+          <p className="text-sm opacity-70 tracking-wider">Handcrafted womenswear, made in India.</p>
+        </section>
+      </Reveal>
 
       <EditorialSection />
     </StorefrontLayout>
