@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { MeasurementGuideDialog } from "@/components/size-guide/MeasurementGuideDialog";
 
 const STEPS = [
   "Upload Inspiration",
@@ -338,6 +339,8 @@ function StepMeasurements({
   data: WizardState;
   setData: React.Dispatch<React.SetStateAction<WizardState>>;
 }) {
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+
   const field = (key: keyof WizardState, label: string, ph: string) => (
     <div className="space-y-1.5">
       <Label className="font-sans text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
@@ -350,18 +353,32 @@ function StepMeasurements({
     </div>
   );
   return (
-    <div className="space-y-4">
-      <h1 className="font-serif text-2xl sm:text-3xl text-foreground mb-1">Measurements</h1>
-      <p className="text-sm text-muted-foreground font-sans mb-6">
-        Share your measurements (in inches). Approximate is fine — we&apos;ll confirm details later.
-      </p>
-      <div className="grid sm:grid-cols-2 gap-4">
-        {field("bust", "Bust", 'e.g. 36"')}
-        {field("waist", "Waist", 'e.g. 28"')}
-        {field("hip", "Hip", 'e.g. 38"')}
-        {field("height", "Height", 'e.g. 5ft 4in')}
+    <>
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-2xl sm:text-3xl text-foreground mb-1">Measurements</h1>
+            <p className="text-sm text-muted-foreground font-sans">
+              Share your measurements (in inches). Approximate is fine — we&apos;ll confirm details later.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSizeGuideOpen(true)}
+            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground shrink-0 mt-1"
+          >
+            Size Guide
+          </button>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4 pt-2">
+          {field("bust", "Bust", 'e.g. 36"')}
+          {field("waist", "Waist", 'e.g. 28"')}
+          {field("hip", "Hip", 'e.g. 38"')}
+          {field("height", "Height", 'e.g. 5ft 4in')}
+        </div>
       </div>
-    </div>
+      <MeasurementGuideDialog open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
+    </>
   );
 }
 

@@ -33,12 +33,17 @@ const MEASURE_STEPS = [
   },
 ] as const;
 
-const SIZE_ROWS = [
-  { size: "XS", bust: "32–34", waist: "24–26", hip: "34–36", height: "60–63" },
-  { size: "S", bust: "34–36", waist: "26–28", hip: "36–38", height: "62–65" },
-  { size: "M", bust: "36–38", waist: "28–30", hip: "38–40", height: "64–67" },
-  { size: "L", bust: "38–40", waist: "30–32", hip: "40–42", height: "66–69" },
-  { size: "XL", bust: "40–42", waist: "32–34", hip: "42–44", height: "68–71" },
+const SIZE_COLUMNS = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"] as const;
+
+const SIZE_CHART_ROWS = [
+  { label: "C", values: ["34", "36", "38", "40", "42", "44", "46", "48", "50"] },
+  { label: "W", values: ["28", "30", "32", "34", "36", "38", "40", "42", "44"] },
+  { label: "H", values: ["36", "38", "40", "42", "44", "46", "48", "50", "52"] },
+  { label: "SO", values: ["13.5", "14", "14.5", "15", "15.5", "16", "16.5", "17", "17.5"] },
+  { label: "SL", values: ["15", "15", "15.5", "16", "16.5", "17", "17.5", "18", "18"] },
+  { label: "SB", values: ["9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13"] },
+  { label: "M", values: ["6", "6.5", "7", "7", "7.5", "7.5", "8", "8", "8.5"] },
+  { label: "A", values: ["14", "15", "15.5", "16", "16.5", "17", "18", "19", "20"] },
 ] as const;
 
 const PRO_TIPS = [
@@ -178,29 +183,39 @@ export function MeasurementGuideDialog({ open, onOpenChange }: MeasurementGuideD
           {/* Size chart */}
           <div>
             <h3 className="mb-4 text-center font-serif text-xl text-foreground">Standard Size Chart</h3>
+            <p className="mb-4 text-center text-xs text-muted-foreground">All measurements in inches</p>
             <div className="overflow-x-auto rounded-xl border border-border/70">
-              <table className="w-full min-w-[480px] border-collapse text-sm">
+              <table className="w-full min-w-[720px] border-collapse text-sm">
                 <thead>
                   <tr style={{ backgroundColor: brand, color: "#F9F6F1" }}>
-                    <th className="px-4 py-3 text-left font-semibold">Size</th>
-                    <th className="px-3 py-3 text-center font-semibold">Bust (in)</th>
-                    <th className="px-3 py-3 text-center font-semibold">Waist (in)</th>
-                    <th className="px-3 py-3 text-center font-semibold">Hip (in)</th>
-                    <th className="px-3 py-3 text-center font-semibold">Height (in)</th>
+                    <th className="sticky left-0 z-[1] px-4 py-3 text-left font-semibold" style={{ backgroundColor: brand }}>
+                      Size
+                    </th>
+                    {SIZE_COLUMNS.map((size) => (
+                      <th key={size} className="px-3 py-3 text-center font-semibold whitespace-nowrap">
+                        {size}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {SIZE_ROWS.map((row, i) => (
+                  {SIZE_CHART_ROWS.map((row, i) => (
                     <tr
-                      key={row.size}
+                      key={row.label}
                       className={i % 2 === 0 ? "bg-background" : ""}
                       style={i % 2 === 1 ? { backgroundColor: "hsl(40 30% 97%)" } : undefined}
                     >
-                      <td className="px-4 py-3 font-semibold text-foreground">{row.size}</td>
-                      <td className="px-3 py-3 text-center text-muted-foreground">{row.bust}</td>
-                      <td className="px-3 py-3 text-center text-muted-foreground">{row.waist}</td>
-                      <td className="px-3 py-3 text-center text-muted-foreground">{row.hip}</td>
-                      <td className="px-3 py-3 text-center text-muted-foreground">{row.height}</td>
+                      <td
+                        className="sticky left-0 z-[1] px-4 py-3 font-semibold text-foreground"
+                        style={{ backgroundColor: i % 2 === 0 ? "hsl(var(--background))" : "hsl(40 30% 97%)" }}
+                      >
+                        {row.label}
+                      </td>
+                      {row.values.map((value, j) => (
+                        <td key={`${row.label}-${SIZE_COLUMNS[j]}`} className="px-3 py-3 text-center text-muted-foreground whitespace-nowrap">
+                          {value}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>

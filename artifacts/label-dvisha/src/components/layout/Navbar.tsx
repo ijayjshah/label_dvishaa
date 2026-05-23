@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { ShoppingBag, Menu, X, User, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
@@ -12,7 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
+
+const navBg = "#FFFFFF";
+const navInk = "#2D1E17";
+const navGold = "#C4A574";
 
 const staticNav = [
   { href: "/custom-order", label: "Custom Order" },
@@ -67,7 +72,8 @@ export function Navbar() {
     }
     return cn(
       "text-sm transition-colors font-sans tracking-wide",
-      active ? "text-foreground font-medium" : "text-foreground/85 hover:text-foreground",
+      active ? "font-medium" : "hover:opacity-100",
+      active ? "text-[var(--nav-ink)]" : "text-[var(--nav-ink)]/75",
     );
   }
 
@@ -76,15 +82,23 @@ export function Navbar() {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 bg-[#F5F5F5]/95 backdrop-blur-sm border-b border-border/60"
+      className="sticky top-0 z-50 bg-white/98 backdrop-blur-md border-b shadow-[0_1px_0_0_rgba(196,165,116,0.15)]"
+      style={
+        {
+          borderColor: `${navGold}40`,
+          ["--nav-ink" as string]: navInk,
+          ["--nav-gold" as string]: navGold,
+        } as CSSProperties
+      }
       initial={reduceMotion ? false : { y: -12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: reduceMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 gap-3">
+        <div className="flex items-center justify-between h-[4.25rem] sm:h-20 gap-3">
           <button
-            className="md:hidden p-2 text-foreground -ml-2"
+            className="md:hidden p-2 -ml-2"
+            style={{ color: navInk }}
             onClick={() => setOpen(!open)}
             data-testid="button-mobile-menu"
             aria-label="Toggle menu"
@@ -94,10 +108,11 @@ export function Navbar() {
 
           <Link
             href="/"
-            className="font-serif text-lg sm:text-xl text-foreground tracking-wide md:min-w-[140px] absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:left-auto"
+            className="inline-flex items-center md:min-w-[200px] absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:left-auto"
             data-testid="link-logo"
+            aria-label="Label Dvisha home"
           >
-            Label Dvisha
+            <BrandLogo imgClassName="h-12 sm:h-14 w-auto max-w-[min(220px,58vw)] object-contain object-center" />
           </Link>
 
           <nav className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8">
@@ -111,11 +126,15 @@ export function Navbar() {
               <button
                 type="button"
                 className={cn(
-                  "text-sm font-sans tracking-wide inline-flex items-center gap-1 py-2 border-b-2 border-transparent",
+                  "text-sm font-sans tracking-wide inline-flex items-center gap-1 py-2 border-b-2 border-transparent transition-colors",
                   collectionsActive
-                    ? "text-foreground font-medium border-foreground/80"
-                    : "text-foreground/85 hover:text-foreground",
+                    ? "font-medium"
+                    : "opacity-75 hover:opacity-100",
                 )}
+                style={{
+                  color: navInk,
+                  borderBottomColor: collectionsActive ? navGold : "transparent",
+                }}
                 aria-expanded="false"
                 aria-haspopup="true"
               >
@@ -248,10 +267,11 @@ export function Navbar() {
             )}
 
             <Link href="/cart" className="relative p-2" data-testid="link-cart">
-              <ShoppingBag className="w-5 h-5 text-foreground" />
+              <ShoppingBag className="w-5 h-5" style={{ color: navInk }} />
               {itemCount > 0 && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#2D1E17] text-white text-[10px] rounded-full flex items-center justify-center font-medium"
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-medium"
+                  style={{ backgroundColor: navGold, color: navInk }}
                   data-testid="text-cart-count"
                 >
                   {itemCount}
@@ -263,14 +283,18 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-border/60 bg-[#F5F5F5] max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto">
+        <div
+          className="md:hidden border-t max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto"
+          style={{ backgroundColor: navBg, borderColor: `${navGold}35` }}
+        >
           <nav className="flex flex-col py-2">
             <button
               type="button"
-              className="px-6 py-3 text-sm font-sans flex items-center justify-between hover:bg-black/5 text-left w-full"
+              className="px-6 py-3 text-sm font-sans flex items-center justify-between hover:bg-[#2D1E17]/5 text-left w-full"
+              style={{ color: navInk }}
               onClick={() => setMobileCatsOpen(!mobileCatsOpen)}
             >
-              <span className={collectionsActive ? "font-medium text-foreground" : "text-foreground/90"}>Categories</span>
+              <span className={collectionsActive ? "font-medium" : "opacity-80"}>Categories</span>
               <ChevronDown className={cn("w-4 h-4 transition-transform", mobileCatsOpen && "rotate-180")} />
             </button>
             {mobileCatsOpen && (
@@ -318,7 +342,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-6 py-3 text-sm font-sans hover:bg-black/5 ${navLinkClass(link.href)}`}
+                className={`px-6 py-3 text-sm font-sans hover:bg-[#2D1E17]/5 ${navLinkClass(link.href)}`}
                 onClick={() => setOpen(false)}
                 data-testid={`link-mobile-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
               >
@@ -327,7 +351,8 @@ export function Navbar() {
             ))}
             <Link
               href="/gallery"
-              className="px-6 py-3 text-sm font-sans text-foreground/90 hover:bg-black/5"
+              className="px-6 py-3 text-sm font-sans hover:bg-[#2D1E17]/5"
+              style={{ color: `${navInk}cc` }}
               onClick={() => setOpen(false)}
             >
               Gallery
@@ -335,7 +360,8 @@ export function Navbar() {
             {!user && (
               <Link
                 href="/login"
-                className="px-6 py-3 text-sm font-sans text-foreground/90 hover:bg-black/5"
+                className="px-6 py-3 text-sm font-sans hover:bg-[#2D1E17]/5"
+                style={{ color: `${navInk}cc` }}
                 onClick={() => setOpen(false)}
                 data-testid="link-mobile-login"
               >

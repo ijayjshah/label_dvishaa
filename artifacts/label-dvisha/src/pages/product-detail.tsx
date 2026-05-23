@@ -246,7 +246,18 @@ export default function ProductDetail() {
                 {/* Custom size inputs */}
                 {customSize && (
                   <div className="mt-4 grid grid-cols-2 gap-3 p-4 border border-border">
-                    <p className="col-span-2 text-xs tracking-widest uppercase text-muted-foreground">Enter your measurements (in inches)</p>
+                    <div className="col-span-2 flex items-center justify-between gap-2">
+                      <p className="text-xs tracking-widest uppercase text-muted-foreground">
+                        Enter your measurements (in inches)
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setSizeGuideOpen(true)}
+                        className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground shrink-0"
+                      >
+                        Size Guide
+                      </button>
+                    </div>
                     {[
                       { key: "bust", label: "Bust" },
                       { key: "waist", label: "Waist" },
