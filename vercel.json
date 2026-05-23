@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter @workspace/label-dvisha run build",
+  "outputDirectory": "artifacts/label-dvisha/dist/public",
+  "installCommand": "pnpm install",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
