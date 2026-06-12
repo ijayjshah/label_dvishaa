@@ -42,8 +42,7 @@ export function Footer() {
 
   return (
     <motion.footer
-      id="contact"
-      className="mt-20 bg-[#2D1E17] text-[#EDE8E0] font-sans antialiased scroll-mt-20"
+      className="mt-20 bg-[#2D1E17] text-[#EDE8E0] font-sans antialiased"
       initial={reduceMotion ? false : { opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}

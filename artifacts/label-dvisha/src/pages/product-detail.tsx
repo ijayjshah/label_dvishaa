@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
-import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
+import { Reveal, RevealStagger, revealItemVariants, motionEase } from "@/components/motion";
 import {
   useGetProduct, getGetProductQueryKey,
   useAddToCart, getGetCartQueryKey,
@@ -129,24 +129,40 @@ export default function ProductDetail() {
           {/* Images */}
           <Reveal y={24}>
           <div>
-            <div className="aspect-[3/4] bg-muted overflow-hidden mb-3">
-              {currentImage ? (
-                <img src={currentImage} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs tracking-widest uppercase">No image</div>
-              )}
+            <div className="aspect-[3/4] bg-muted overflow-hidden mb-3 relative rounded-sm">
+              <AnimatePresence mode="wait">
+                {currentImage ? (
+                  <motion.img
+                    key={currentImage}
+                    src={currentImage}
+                    alt={product.name}
+                    initial={{ opacity: 0, scale: 1.04 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.02 }}
+                    transition={{ duration: 0.5, ease: motionEase }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs tracking-widest uppercase">No image</div>
+                )}
+              </AnimatePresence>
             </div>
             {images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {images.slice(0, 8).map((img, i) => (
-                  <button
+                  <motion.button
                     key={img.id}
                     onClick={() => setSelectedImageIndex(i)}
-                    className={`aspect-square overflow-hidden border-2 transition-colors ${i === selectedImageIndex ? "border-primary" : "border-transparent"}`}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.25, ease: motionEase }}
+                    className={`aspect-square overflow-hidden rounded-sm border-2 transition-colors duration-300 ${
+                      i === selectedImageIndex ? "border-foreground ring-1 ring-foreground/20" : "border-transparent hover:border-muted-foreground/40"
+                    }`}
                     data-testid={`button-image-${i}`}
                   >
                     <img src={img.imageUrl} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}
@@ -193,13 +209,16 @@ export default function ProductDetail() {
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {colors.map(color => (
-                    <button
+                    <motion.button
                       key={color.id}
                       onClick={() => setSelectedColorId(color.id === selectedColorId ? null : color.id)}
                       disabled={!color.isAvailable}
                       title={color.name}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        color.id === selectedColorId ? "border-foreground scale-110" : "border-transparent hover:border-muted-foreground"
+                      whileHover={color.isAvailable ? { scale: 1.12 } : undefined}
+                      whileTap={color.isAvailable ? { scale: 0.95 } : undefined}
+                      transition={{ duration: 0.22, ease: motionEase }}
+                      className={`w-8 h-8 rounded-full border-2 transition-shadow duration-300 ${
+                        color.id === selectedColorId ? "border-foreground shadow-md ring-2 ring-foreground/10 ring-offset-2 ring-offset-background" : "border-transparent hover:border-muted-foreground/50"
                       } ${!color.isAvailable ? "opacity-30 cursor-not-allowed" : ""}`}
                       style={{ backgroundColor: color.hexCode }}
                       data-testid={`button-color-${color.id}`}
@@ -224,34 +243,48 @@ export default function ProductDetail() {
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {sizes.map(s => (
-                    <button
+                    <motion.button
                       key={s.id}
                       onClick={() => { setSelectedSizeId(s.id === selectedSizeId ? null : s.id); setCustomSize(false); }}
                       disabled={!s.isAvailable}
-                      className={`px-4 py-2 text-sm border transition-colors ${
-                        s.id === selectedSizeId && !customSize ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"
+                      whileHover={s.isAvailable ? { y: -1 } : undefined}
+                      whileTap={s.isAvailable ? { scale: 0.97 } : undefined}
+                      transition={{ duration: 0.2, ease: motionEase }}
+                      className={`px-4 py-2 text-sm border transition-colors duration-300 ${
+                        s.id === selectedSizeId && !customSize ? "border-foreground bg-foreground text-background shadow-sm" : "border-border hover:border-foreground/60"
                       } ${!s.isAvailable ? "opacity-30 cursor-not-allowed line-through" : ""}`}
                       data-testid={`button-size-${s.id}`}
                     >
                       {(s as any).size?.label ?? s.sizeId}
-                    </button>
+                    </motion.button>
                   ))}
                   {product.allowCustomSize && (
-                    <button
+                    <motion.button
                       onClick={() => { setCustomSize(!customSize); setSelectedSizeId(null); }}
-                      className={`px-4 py-2 text-sm border transition-colors ${
-                        customSize ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground"
+                      whileHover={{ y: -1 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ duration: 0.2, ease: motionEase }}
+                      className={`px-4 py-2 text-sm border transition-colors duration-300 ${
+                        customSize ? "border-foreground bg-foreground text-background shadow-sm" : "border-border hover:border-foreground/60"
                       }`}
                       data-testid="button-custom-size"
                     >
                       Custom Size
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
                 {/* Custom size inputs */}
+                <AnimatePresence initial={false}>
                 {customSize && (
-                  <div className="mt-4 grid grid-cols-2 gap-3 p-4 border border-border">
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.38, ease: motionEase }}
+                    className="overflow-hidden"
+                  >
+                  <div className="mt-4 grid grid-cols-2 gap-3 p-4 border border-border/80 bg-muted/20 rounded-sm">
                     <div className="col-span-2 flex items-center justify-between gap-2">
                       <p className="text-xs tracking-widest uppercase text-muted-foreground">
                         Enter your measurements (in inches)
@@ -282,7 +315,9 @@ export default function ProductDetail() {
                       </div>
                     ))}
                   </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
               </div>
             )}
 
@@ -309,15 +344,17 @@ export default function ProductDetail() {
             </div>
 
             {/* Add to cart */}
+            <motion.div whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }} transition={{ duration: 0.2, ease: motionEase }}>
             <Button
               onClick={handleAddToCart}
               disabled={addToCart.isPending}
               size="lg"
-              className="w-full tracking-widest uppercase text-xs mb-3"
+              className="w-full tracking-widest uppercase text-xs mb-3 shadow-sm hover:shadow-md transition-shadow duration-300"
               data-testid="button-add-to-cart"
             >
               {addToCart.isPending ? "Adding..." : "Add to Cart"}
             </Button>
+            </motion.div>
 
             {showFabricCare && (
               <ProductDetailAccordions

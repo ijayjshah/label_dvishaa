@@ -32,6 +32,7 @@ import AdminBanners from "@/pages/admin/banners";
 import AdminSizes from "@/pages/admin/sizes";
 import AdminContactMessages from "@/pages/admin/contact-messages";
 import AdminBlogs from "@/pages/admin/blogs";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -133,6 +134,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <ScrollToTop />
             <AppRoutes />
           </WouterRouter>
           <Toaster />
