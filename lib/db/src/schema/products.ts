@@ -15,6 +15,9 @@ export const productsTable = pgTable("products", {
   compareAtPrice: numeric("compare_at_price", { precision: 10, scale: 2 }),
   categoryId: integer("category_id").references(() => categoriesTable.id, { onDelete: "set null" }),
   material: text("material"),
+  fabric: text("fabric"),
+  careInstructions: text("care_instructions"),
+  showFabricCare: boolean("show_fabric_care").notNull().default(true),
   styleTag: text("style_tag"),
   deliveryDays: text("delivery_days"),
   allowCustomSize: boolean("allow_custom_size").notNull().default(false),
@@ -59,6 +62,7 @@ export const productSectionsTable = pgTable("product_sections", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  isVisible: boolean("is_visible").notNull().default(true),
 });
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ createdAt: true, updatedAt: true });

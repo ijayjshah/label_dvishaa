@@ -4,9 +4,9 @@ import {
   useListProducts, getListProductsQueryKey,
   useListCategories,
   useCreateProduct, useUpdateProduct, useDeleteProduct,
+  useGetProduct, getGetProductQueryKey,
   useAddProductColor, useDeleteProductColor,
   useAddProductImage, useDeleteProductImage,
-  useAddProductSection, useUpdateProductSection, useDeleteProductSection,
   useAddProductSize, useUpdateProductSize, useDeleteProductSize,
   useListSizes,
 } from "@workspace/api-client-react";
@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ImageUrlWithCloudinaryUpload } from "@/components/ImageUrlWithCloudinaryUpload";
 import { Trash2, Plus, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { slugify, getApiErrorMessage } from "@/lib/utils";
 
 function emptyProduct() {
   return {
@@ -33,6 +34,7 @@ function emptyProduct() {
     isFeatured: false,
     isActive: true,
     deliveryDays: "7" as string,
+    showFabricCare: true,
   };
 }
 
@@ -62,10 +64,24 @@ export default function AdminProducts() {
   const invalidate = () => qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
 
   const createMutation = useCreateProduct({
-    mutation: { onSuccess: () => { invalidate(); setFormOpen(false); toast({ title: "Product created" }); }, onError: (e: any) => toast({ title: e?.data?.error ?? "Failed", variant: "destructive" }) },
+    mutation: {
+      onSuccess: () => { invalidate(); setFormOpen(false); toast({ title: "Product created" }); },
+      onError: (e) => toast({
+        title: "Could not create product",
+        description: getApiErrorMessage(e, "Something went wrong. Please try again."),
+        variant: "destructive",
+      }),
+    },
   });
   const updateMutation = useUpdateProduct({
-    mutation: { onSuccess: () => { invalidate(); setFormOpen(false); setEditProduct(null); toast({ title: "Product updated" }); }, onError: (e: any) => toast({ title: e?.data?.error ?? "Failed", variant: "destructive" }) },
+    mutation: {
+      onSuccess: () => { invalidate(); setFormOpen(false); setEditProduct(null); toast({ title: "Product updated" }); },
+      onError: (e) => toast({
+        title: "Could not update product",
+        description: getApiErrorMessage(e, "Something went wrong. Please try again."),
+        variant: "destructive",
+      }),
+    },
   });
   const deleteMutation = useDeleteProduct({
     mutation: { onSuccess: () => { invalidate(); toast({ title: "Product deleted" }); }, onError: () => toast({ title: "Delete failed", variant: "destructive" }) },
@@ -82,13 +98,14 @@ export default function AdminProducts() {
       name: p.name, slug: p.slug, shortDescription: p.shortDescription ?? "", description: p.description ?? "",
       price: p.price, compareAtPrice: p.compareAtPrice ?? undefined, categoryId: p.categoryId ?? undefined, sku: p.sku ?? "",
       allowCustomSize: p.allowCustomSize ?? false, isFeatured: p.isFeatured, isActive: p.isActive, deliveryDays: p.deliveryDays ?? "7",
+      showFabricCare: p.showFabricCare ?? true,
     });
     setFormOpen(true);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const data = { ...form, slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-") };
+    const data = { ...form, slug: form.slug.trim() || slugify(form.name) };
     if (editProduct) updateMutation.mutate({ id: editProduct.id, data });
     else createMutation.mutate({ data });
   }
@@ -180,8 +197,9 @@ export default function AdminProducts() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>SKU</Label>
-                <Input value={form.sku} onChange={e => setForm(f => ({ ...f, sku: e.target.value }))} data-testid="input-sku" />
+                <Label>SKU *</Label>
+                <Input value={form.sku} onChange={e => setForm(f => ({ ...f, sku: e.target.value }))} required data-testid="input-sku" />
+                <p className="text-xs text-muted-foreground">Must be unique across all products.</p>
               </div>
               <div className="space-y-1.5 col-span-2">
                 <Label>Short Description</Label>
@@ -196,6 +214,20 @@ export default function AdminProducts() {
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   data-testid="textarea-description"
                 />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.showFabricCare}
+                    onChange={e => setForm(f => ({ ...f, showFabricCare: e.target.checked }))}
+                    data-testid="checkbox-show-fabric-care"
+                  />
+                  Show Fabric &amp; Care on website
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Shows fixed detail accordions on the product page (Fabric Details, Wash Care, Delivery, etc.).
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label>Delivery Days</Label>
@@ -236,7 +268,14 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
   const qc = useQueryClient();
   const { toast } = useToast();
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+  const { data: detail } = useGetProduct(product.id, {
+    query: { enabled: expanded, queryKey: getGetProductQueryKey(product.id) },
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: getListProductsQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetProductQueryKey(product.id) });
+  };
 
   const addColor = useAddProductColor({ mutation: { onSuccess: invalidate, onError: () => toast({ title: "Failed", variant: "destructive" }) } });
   const deleteColor = useDeleteProductColor({ mutation: { onSuccess: invalidate, onError: () => toast({ title: "Failed", variant: "destructive" }) } });
@@ -250,6 +289,10 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
     imageUrl: "",
   });
   const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
+
+  const images = detail?.images ?? [];
+  const colors = detail?.colors ?? [];
+  const sizes = detail?.sizes ?? [];
 
   return (
     <div data-testid={`row-product-${product.id}`}>
@@ -276,7 +319,7 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
           <div>
             <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground mb-2">Images</p>
             <div className="flex gap-2 flex-wrap mb-2">
-              {(product.images ?? []).map((img: any) => (
+              {images.map((img: any) => (
                 <div key={img.id} className="relative group">
                   <img src={img.imageUrl} alt="" className="w-16 h-20 object-cover" />
                   <button
@@ -306,8 +349,8 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
                     data: {
                       imageUrl: newImage.imageUrl.trim(),
                       cloudinaryPublicId: newImage.cloudinaryPublicId,
-                      isPrimary: (product.images ?? []).length === 0,
-                      sortOrder: (product.images ?? []).length,
+                      isPrimary: images.length === 0,
+                      sortOrder: images.length,
                     },
                   });
                   setNewImage({ imageUrl: "" });
@@ -324,7 +367,7 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
           <div>
             <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground mb-2">Colours</p>
             <div className="flex gap-2 flex-wrap mb-2">
-              {(product.colors ?? []).map((c: any) => (
+              {(colors.length > 0 ? colors : product.colors ?? []).map((c: any) => (
                 <div key={c.id} className="flex items-center gap-1.5 text-xs border border-border px-2 py-1">
                   <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: c.hexCode }} />
                   {c.name}
@@ -352,7 +395,7 @@ function ProductRow({ product, expanded, onToggle, onEdit, onDelete, allSizes }:
           <div>
             <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground mb-2">Sizes</p>
             <div className="flex gap-2 flex-wrap mb-2">
-              {(product.sizes ?? []).map((s: any) => (
+              {(sizes.length > 0 ? sizes : product.sizes ?? []).map((s: any) => (
                 <div key={s.id} className="flex items-center gap-1.5 text-xs border border-border px-2 py-1">
                   {s.size?.label ?? s.sizeId}
                   <button onClick={() => deleteSize.mutate({ id: product.id, productSizeId: s.id })} className="text-muted-foreground hover:text-destructive ml-1">×</button>

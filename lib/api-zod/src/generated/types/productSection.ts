@@ -12,4 +12,5 @@ export interface ProductSection {
   title: string;
   content: string;
   sortOrder: number;
+  isVisible: boolean;
 }

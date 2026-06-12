@@ -5,6 +5,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { corsOptionsFromEnv } from "./lib/cors-options";
 import { getWebAppBaseUrl } from "./lib/web-app-url";
+import { dbErrorResponse } from "./lib/pg-errors";
 
 const app: Express = express();
 
@@ -49,5 +50,21 @@ app.get("/admin", (_req, res) => {
 });
 
 app.use("/api", router);
+
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const mapped = dbErrorResponse(err);
+  if (mapped) {
+    res.status(mapped.status).json({ error: mapped.error });
+    return;
+  }
+  logger.error({ err }, "Unhandled API error");
+  const message =
+    err instanceof Error && process.env.NODE_ENV === "development"
+      ? err.message
+      : "Something went wrong. Please try again.";
+  if (!res.headersSent) {
+    res.status(500).json({ error: message });
+  }
+});
 
 export default app;

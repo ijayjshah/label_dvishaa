@@ -2,6 +2,8 @@ import { Router } from "express";
 import { db, productsTable, productImagesTable, productColorsTable, productSizesTable, productSectionsTable, categoriesTable, sizesTable, reviewsTable, usersTable } from "@workspace/db";
 import { eq, and, or, inArray, ilike, desc, asc, count } from "drizzle-orm";
 import { requireAdmin, optionalAuth } from "../lib/auth";
+import { dbErrorResponse } from "../lib/pg-errors";
+import { logger } from "../lib/logger";
 import {
   CreateProductBody, UpdateProductBody, UpdateProductParams, DeleteProductParams, GetProductParams,
   ListProductsQueryParams,
@@ -81,6 +83,9 @@ router.get("/products/:id", optionalAuth, async (req, res): Promise<void> => {
 
   if (!row) { res.status(404).json({ error: "Product not found" }); return; }
 
+  const user = (req as any).user;
+  const isAdmin = user?.role === "admin";
+
   const [images, colors, sizes, sections, reviews] = await Promise.all([
     db.select().from(productImagesTable).where(eq(productImagesTable.productId, params.data.id)).orderBy(asc(productImagesTable.sortOrder)),
     db.select().from(productColorsTable).where(eq(productColorsTable.productId, params.data.id)).orderBy(asc(productColorsTable.sortOrder)),
@@ -103,7 +108,9 @@ router.get("/products/:id", optionalAuth, async (req, res): Promise<void> => {
       size: s.size ? { id: s.size.id, label: s.size.label, bustRange: s.size.bustRange, waistRange: s.size.waistRange, hipRange: s.size.hipRange, heightRange: s.size.heightRange, sortOrder: s.size.sortOrder, isActive: s.size.isActive } : null,
       stockQuantity: s.ps.stockQuantity, isAvailable: s.ps.isAvailable,
     })),
-    sections: sections.map(s => ({ id: s.id, productId: s.productId, title: s.title, content: s.content, sortOrder: s.sortOrder })),
+    sections: (isAdmin || row.product.showFabricCare !== false)
+      ? sections.map(formatSection)
+      : [],
     reviews: reviews.map(r => ({
       id: r.review.id, productId: r.review.productId, userId: r.review.userId,
       userName: r.user?.fullName ?? null, rating: r.review.rating,
@@ -117,8 +124,19 @@ router.get("/products/:id", optionalAuth, async (req, res): Promise<void> => {
 router.post("/products", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateProductBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [product] = await db.insert(productsTable).values(parsed.data as any).returning();
-  res.status(201).json(formatProduct(product, null, null));
+  try {
+    const [product] = await db.insert(productsTable).values(parsed.data as any).returning();
+    res.status(201).json(formatProduct(product, null, null));
+  } catch (err) {
+    const mapped = dbErrorResponse(err);
+    if (mapped) { res.status(mapped.status).json({ error: mapped.error }); return; }
+    logger.error({ err }, "POST /products failed");
+    res.status(500).json({
+      error: err instanceof Error && process.env.NODE_ENV === "development"
+        ? err.message
+        : "Could not save product. Please try again.",
+    });
+  }
 });
 
 // Update product
@@ -127,9 +145,20 @@ router.patch("/products/:id", requireAdmin, async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const parsed = UpdateProductBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [product] = await db.update(productsTable).set(parsed.data as any).where(eq(productsTable.id, params.data.id)).returning();
-  if (!product) { res.status(404).json({ error: "Product not found" }); return; }
-  res.json(formatProduct(product, null, null));
+  try {
+    const [product] = await db.update(productsTable).set(parsed.data as any).where(eq(productsTable.id, params.data.id)).returning();
+    if (!product) { res.status(404).json({ error: "Product not found" }); return; }
+    res.json(formatProduct(product, null, null));
+  } catch (err) {
+    const mapped = dbErrorResponse(err);
+    if (mapped) { res.status(mapped.status).json({ error: mapped.error }); return; }
+    logger.error({ err }, "PATCH /products/:id failed");
+    res.status(500).json({
+      error: err instanceof Error && process.env.NODE_ENV === "development"
+        ? err.message
+        : "Could not update product. Please try again.",
+    });
+  }
 });
 
 // Delete product
@@ -217,7 +246,7 @@ router.post("/products/:id/sections", requireAdmin, async (req, res): Promise<vo
   const parsed = AddProductSectionBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [section] = await db.insert(productSectionsTable).values({ ...parsed.data, productId: params.data.id }).returning();
-  res.status(201).json({ id: section.id, productId: section.productId, title: section.title, content: section.content, sortOrder: section.sortOrder });
+  res.status(201).json(formatSection(section));
 });
 
 // Update product section
@@ -228,7 +257,7 @@ router.patch("/products/:id/sections/:sectionId", requireAdmin, async (req, res)
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [section] = await db.update(productSectionsTable).set(parsed.data).where(and(eq(productSectionsTable.id, params.data.sectionId), eq(productSectionsTable.productId, params.data.id))).returning();
   if (!section) { res.status(404).json({ error: "Not found" }); return; }
-  res.json({ id: section.id, productId: section.productId, title: section.title, content: section.content, sortOrder: section.sortOrder });
+  res.json(formatSection(section));
 });
 
 // Delete product section
@@ -246,7 +275,11 @@ function formatProduct(p: any, cat: any, primaryImage: string | null) {
     sku: p.sku, price: Number(p.price),
     compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
     categoryId: p.categoryId ?? null,
-    material: p.material ?? null, styleTag: p.styleTag ?? null, deliveryDays: p.deliveryDays ?? null,
+    material: p.material ?? null,
+    fabric: p.fabric ?? null,
+    careInstructions: p.careInstructions ?? null,
+    showFabricCare: p.showFabricCare ?? true,
+    styleTag: p.styleTag ?? null, deliveryDays: p.deliveryDays ?? null,
     allowCustomSize: p.allowCustomSize, isActive: p.isActive, isFeatured: p.isFeatured,
     lowStockThreshold: p.lowStockThreshold,
     createdAt: p.createdAt.toISOString(),
@@ -264,6 +297,17 @@ function formatProduct(p: any, cat: any, primaryImage: string | null) {
           isActive: cat.isActive,
         }
       : null,
+  };
+}
+
+function formatSection(s: typeof productSectionsTable.$inferSelect) {
+  return {
+    id: s.id,
+    productId: s.productId,
+    title: s.title,
+    content: s.content,
+    sortOrder: s.sortOrder,
+    isVisible: s.isVisible,
   };
 }
 

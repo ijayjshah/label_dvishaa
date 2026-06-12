@@ -24,6 +24,11 @@ export interface Product {
   /** @nullable */
   material?: string | null;
   /** @nullable */
+  fabric?: string | null;
+  /** @nullable */
+  careInstructions?: string | null;
+  showFabricCare?: boolean;
+  /** @nullable */
   styleTag?: string | null;
   /** @nullable */
   deliveryDays?: string | null;

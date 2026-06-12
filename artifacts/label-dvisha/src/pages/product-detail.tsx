@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
 import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
 import {
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { MeasurementGuideDialog } from "@/components/size-guide/MeasurementGuideDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { FIXED_PRODUCT_DETAIL_SECTIONS } from "@/lib/product-fabric-care";
+import { ProductDetailAccordions } from "@/components/product/ProductDetailAccordions";
 
 interface CustomMeasurements { bust?: string; waist?: string; hip?: string; height?: string }
 
@@ -33,7 +35,7 @@ export default function ProductDetail() {
   const [customSize, setCustomSize] = useState(false);
   const [measurements, setMeasurements] = useState<CustomMeasurements>({});
   const [quantity, setQuantity] = useState(1);
-  const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   const addToCart = useAddToCart({
@@ -77,13 +79,13 @@ export default function ProductDetail() {
   const images = product.images ?? [];
   const colors = product.colors ?? [];
   const sizes = product.sizes ?? [];
-  const sections = product.sections ?? [];
   const reviews = (product as any).reviews ?? [];
+  const showFabricCare = product.showFabricCare !== false;
 
   const currentImage = images[selectedImageIndex]?.imageUrl ?? images[0]?.imageUrl;
 
-  function toggleSection(id: number) {
-    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+  function toggleSection(key: string) {
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   }
 
   function handleAddToCart() {
@@ -176,7 +178,11 @@ export default function ProductDetail() {
             )}
 
             {product.shortDescription && (
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{product.shortDescription}</p>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{product.shortDescription}</p>
+            )}
+
+            {product.description && (
+              <p className="text-sm text-foreground/80 mb-4 leading-relaxed whitespace-pre-line">{product.description}</p>
             )}
 
             {/* Color selection */}
@@ -313,33 +319,12 @@ export default function ProductDetail() {
               {addToCart.isPending ? "Adding..." : "Add to Cart"}
             </Button>
 
-            {product.deliveryDays && (
-              <p className="text-xs text-center text-muted-foreground">
-                Delivery in {product.deliveryDays} days
-              </p>
-            )}
-
-            {/* Accordion sections */}
-            {sections.length > 0 && (
-              <div className="mt-8 border-t border-border">
-                {sections.map(section => (
-                  <div key={section.id} className="border-b border-border">
-                    <button
-                      className="w-full flex items-center justify-between py-4 text-sm font-medium text-left"
-                      onClick={() => toggleSection(section.id)}
-                      data-testid={`button-section-${section.id}`}
-                    >
-                      {section.title}
-                      {openSections[section.id] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                    {openSections[section.id] && (
-                      <div className="pb-4 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                        {section.content}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {showFabricCare && (
+              <ProductDetailAccordions
+                sections={FIXED_PRODUCT_DETAIL_SECTIONS}
+                openSections={openSections}
+                onToggle={(id) => toggleSection(id)}
+              />
             )}
           </div>
           </Reveal>

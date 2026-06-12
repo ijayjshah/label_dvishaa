@@ -10,4 +10,5 @@ export interface ProductSectionUpdate {
   title?: string;
   content?: string;
   sortOrder?: number;
+  isVisible?: boolean;
 }

@@ -262,18 +262,21 @@ export interface ProductSection {
   title: string;
   content: string;
   sortOrder: number;
+  isVisible: boolean;
 }
 
 export interface ProductSectionInput {
   title: string;
   content: string;
   sortOrder?: number;
+  isVisible?: boolean;
 }
 
 export interface ProductSectionUpdate {
   title?: string;
   content?: string;
   sortOrder?: number;
+  isVisible?: boolean;
 }
 
 export interface Product {
@@ -292,6 +295,11 @@ export interface Product {
   categoryId?: number | null;
   /** @nullable */
   material?: string | null;
+  /** @nullable */
+  fabric?: string | null;
+  /** @nullable */
+  careInstructions?: string | null;
+  showFabricCare?: boolean;
   /** @nullable */
   styleTag?: string | null;
   /** @nullable */
@@ -338,6 +346,11 @@ export interface ProductDetail {
   /** @nullable */
   material?: string | null;
   /** @nullable */
+  fabric?: string | null;
+  /** @nullable */
+  careInstructions?: string | null;
+  showFabricCare?: boolean;
+  /** @nullable */
   styleTag?: string | null;
   /** @nullable */
   deliveryDays?: string | null;
@@ -364,6 +377,9 @@ export interface ProductInput {
   compareAtPrice?: number;
   categoryId?: number;
   material?: string;
+  fabric?: string;
+  careInstructions?: string;
+  showFabricCare?: boolean;
   styleTag?: string;
   deliveryDays?: string;
   allowCustomSize?: boolean;
@@ -382,6 +398,9 @@ export interface ProductUpdate {
   compareAtPrice?: number;
   categoryId?: number;
   material?: string;
+  fabric?: string;
+  careInstructions?: string;
+  showFabricCare?: boolean;
   styleTag?: string;
   deliveryDays?: string;
   allowCustomSize?: boolean;

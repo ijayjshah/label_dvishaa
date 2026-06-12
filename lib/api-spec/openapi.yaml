@@ -1813,7 +1813,7 @@ components:
 
     ProductSection:
       type: object
-      required: [id, productId, title, content, sortOrder]
+      required: [id, productId, title, content, sortOrder, isVisible]
       properties:
         id:
           type: integer
@@ -1825,6 +1825,8 @@ components:
           type: string
         sortOrder:
           type: integer
+        isVisible:
+          type: boolean
 
     ProductSectionInput:
       type: object
@@ -1836,6 +1838,8 @@ components:
           type: string
         sortOrder:
           type: integer
+        isVisible:
+          type: boolean
 
     ProductSectionUpdate:
       type: object
@@ -1846,6 +1850,8 @@ components:
           type: string
         sortOrder:
           type: integer
+        isVisible:
+          type: boolean
 
     Product:
       type: object
@@ -1871,6 +1877,12 @@ components:
           type: ["integer", "null"]
         material:
           type: ["string", "null"]
+        fabric:
+          type: ["string", "null"]
+        careInstructions:
+          type: ["string", "null"]
+        showFabricCare:
+          type: boolean
         styleTag:
           type: ["string", "null"]
         deliveryDays:
@@ -1914,6 +1926,12 @@ components:
           type: ["integer", "null"]
         material:
           type: ["string", "null"]
+        fabric:
+          type: ["string", "null"]
+        careInstructions:
+          type: ["string", "null"]
+        showFabricCare:
+          type: boolean
         styleTag:
           type: ["string", "null"]
         deliveryDays:
@@ -1973,6 +1991,12 @@ components:
           type: integer
         material:
           type: string
+        fabric:
+          type: string
+        careInstructions:
+          type: string
+        showFabricCare:
+          type: boolean
         styleTag:
           type: string
         deliveryDays:
@@ -2007,6 +2031,12 @@ components:
           type: integer
         material:
           type: string
+        fabric:
+          type: string
+        careInstructions:
+          type: string
+        showFabricCare:
+          type: boolean
         styleTag:
           type: string
         deliveryDays:

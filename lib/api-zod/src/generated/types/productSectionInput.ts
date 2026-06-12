@@ -10,4 +10,5 @@ export interface ProductSectionInput {
   title: string;
   content: string;
   sortOrder?: number;
+  isVisible?: boolean;
 }

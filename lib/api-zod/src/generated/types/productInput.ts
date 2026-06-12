@@ -16,6 +16,9 @@ export interface ProductInput {
   compareAtPrice?: number;
   categoryId?: number;
   material?: string;
+  fabric?: string;
+  careInstructions?: string;
+  showFabricCare?: boolean;
   styleTag?: string;
   deliveryDays?: string;
   allowCustomSize?: boolean;
