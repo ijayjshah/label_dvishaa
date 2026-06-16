@@ -1,206 +1,69 @@
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
 import { CustomOrderHomeSection } from "@/components/home/CustomOrderHomeSection";
 import { EditorialSection } from "@/components/home/EditorialSection";
-import { Reveal, RevealStagger, revealItemVariants } from "@/components/motion";
+import { ExploreCollectionsSection } from "@/components/home/ExploreCollectionsSection";
+import { ExploreProductsSection } from "@/components/home/ExploreProductsSection";
+import { HeroSlider } from "@/components/home/HeroSlider";
+import { PremiumMarquee } from "@/components/home/PremiumMarquee";
+import { PromoBannerSection } from "@/components/home/PromoBannerSection";
+import { Reveal, motionEase } from "@/components/motion";
 import { useListBanners, useListProducts, useListCategories } from "@workspace/api-client-react";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const reduceMotion = useReducedMotion();
   const { data: banners } = useListBanners();
   const { data: featuredData } = useListProducts({ featured: true, limit: 8 });
   const { data: categories } = useListCategories();
   const featured = featuredData?.data ?? [];
-  const allCategories = (categories ?? []).filter(c => c.isActive);
+  const allCategories = (categories ?? []).filter((c) => c.isActive);
   const rootCategories = allCategories.filter((c) => c.parentId == null).slice(0, 6);
-
-  const heroBanner = banners?.[0];
+  const heroBanners = (banners ?? []).filter((b) => b.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  const promoBanner = heroBanners.length > 1 ? heroBanners[1] : banners?.[1];
 
   return (
     <StorefrontLayout>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-primary text-primary-foreground min-h-[70vh] flex items-center">
-        {heroBanner?.imageUrl ? (
-          <img
-            src={heroBanner.imageUrl}
-            alt={heroBanner.title}
-            className={`absolute inset-0 w-full h-full object-cover opacity-50 ${!reduceMotion ? "animate-hero-kenburns" : ""}`}
-          />
-        ) : (
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(ellipse at 30% 60%, hsl(40 60% 80%) 0%, transparent 70%)" }} />
-        )}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 text-center">
-          {reduceMotion ? (
-            <>
-              <p className="text-xs tracking-[0.3em] uppercase mb-4 opacity-70">New Collection</p>
-              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight">
-                {heroBanner?.title ?? "Wear Your Story"}
-              </h1>
-              {heroBanner?.subtitle && (
-                <p className="text-lg opacity-80 mb-8 max-w-md mx-auto">{heroBanner.subtitle}</p>
-              )}
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary tracking-widest uppercase text-xs"
-              >
-                <Link href={heroBanner?.linkUrl ?? "/products"}>
-                  Explore Collections <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
-            </>
-          ) : (
-            <motion.div
-              initial="hidden"
-              animate="show"
-              variants={{
-                hidden: {},
-                show: { transition: { staggerChildren: 0.11, delayChildren: 0.08 } },
-              }}
-            >
-              <motion.p
-                variants={revealItemVariants}
-                className="text-xs tracking-[0.3em] uppercase mb-4 opacity-70"
-              >
-                New Collection
-              </motion.p>
-              <motion.h1 variants={revealItemVariants} className="font-serif text-5xl sm:text-6xl md:text-7xl mb-6 leading-tight">
-                {heroBanner?.title ?? "Wear Your Story"}
-              </motion.h1>
-              {heroBanner?.subtitle && (
-                <motion.p variants={revealItemVariants} className="text-lg opacity-80 mb-8 max-w-md mx-auto">
-                  {heroBanner.subtitle}
-                </motion.p>
-              )}
-              <motion.div variants={revealItemVariants}>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary tracking-widest uppercase text-xs"
-                >
-                  <Link href={heroBanner?.linkUrl ?? "/products"}>
-                    Explore Collections <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-          )}
-        </div>
-      </section>
+      <HeroSlider banners={heroBanners} />
+
+      <ExploreProductsSection products={featured} />
+
+      <ExploreCollectionsSection categories={rootCategories} />
+
+      <PremiumMarquee />
 
       <CustomOrderHomeSection />
 
-      {/* Categories */}
-      {rootCategories.length > 0 && (
-        <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-          <Reveal className="text-center mb-10">
-            <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Browse by</p>
-            <h2 className="font-serif text-3xl">Collections</h2>
-          </Reveal>
-          <RevealStagger className="grid grid-cols-2 sm:grid-cols-3 gap-4" stagger={0.08}>
-            {rootCategories.map(cat => (
-              <motion.div key={cat.id} variants={revealItemVariants}>
-                <Link
-                  href={`/collections/${cat.slug}`}
-                  className="group relative overflow-hidden bg-muted aspect-[4/3] flex items-end p-4 rounded-lg ring-1 ring-black/[0.04] shadow-sm"
-                  data-testid={`link-category-${cat.id}`}
-                >
-                  {cat.imageUrl && (
-                    <img src={cat.imageUrl} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <span className="relative z-10 font-serif text-white text-lg">{cat.name}</span>
-                </Link>
-              </motion.div>
-            ))}
-          </RevealStagger>
-        </section>
-      )}
+      {promoBanner && <PromoBannerSection banner={promoBanner} />}
 
-      {/* Featured Products */}
-      {featured.length > 0 && (
-        <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-          <Reveal className="flex items-end justify-between mb-10">
-            <div>
-              <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">Curated for you</p>
-              <h2 className="font-serif text-3xl">Featured Pieces</h2>
-            </div>
-            <Link href="/products" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors hidden sm:block">
-              View all
-            </Link>
-          </Reveal>
-          <RevealStagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" stagger={0.06}>
-            {featured.map(product => (
-              <motion.div key={product.id} variants={revealItemVariants}>
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </RevealStagger>
-          <Reveal className="text-center mt-10 sm:hidden">
-            <Button variant="outline" asChild className="tracking-widest uppercase text-xs">
-              <Link href="/products">View All</Link>
-            </Button>
-          </Reveal>
-        </section>
-      )}
-
-      {/* Banner strip */}
-      {banners && banners.length > 1 && (
-        <Reveal y={20}>
-          <section className="py-12 bg-secondary">
-            <div className="max-w-7xl mx-auto px-6 text-center">
-              <p className="text-xs tracking-widest uppercase text-muted-foreground mb-2">{banners[1].subtitle ?? "Special"}</p>
-              <h2 className="font-serif text-3xl mb-4">{banners[1].title}</h2>
-              {banners[1].linkUrl && (
-                <Button asChild variant="default" className="tracking-widest uppercase text-xs">
-                  <Link href={banners[1].linkUrl}>Shop Now</Link>
-                </Button>
-              )}
-            </div>
-          </section>
-        </Reveal>
-      )}
-
-      <Reveal y={16}>
-        <section id="about" className="py-20 px-6 bg-primary text-primary-foreground text-center scroll-mt-20">
-          <p className="font-serif text-3xl sm:text-4xl mb-4">Every thread tells a story.</p>
-          <p className="text-sm opacity-70 tracking-wider">Handcrafted womenswear, made in India.</p>
+      <Reveal y={18}>
+        <section
+          id="about"
+          className="py-14 sm:py-20 md:py-28 px-4 sm:px-6 md:px-8 bg-primary text-primary-foreground text-center scroll-mt-20"
+        >
+          <div className="max-w-3xl mx-auto">
+            <motion.p
+              className="font-serif text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal tracking-[-0.02em] leading-[1.2] text-primary-foreground mb-3 sm:mb-4 md:mb-5 px-2"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.85, ease: motionEase }}
+            >
+              Every thread tells a story.
+            </motion.p>
+            <motion.p
+              className="font-sans text-sm sm:text-[15px] font-light text-primary-foreground/70 tracking-wide"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.85, delay: 0.12, ease: motionEase }}
+            >
+              Handcrafted womenswear, made in India.
+            </motion.p>
+          </div>
         </section>
       </Reveal>
 
       <EditorialSection />
     </StorefrontLayout>
-  );
-}
-
-function ProductCard({ product }: { product: any }) {
-  return (
-    <Link href={`/products/${product.id}`} className="group block" data-testid={`card-product-${product.id}`}>
-      <div className="aspect-[3/4] bg-muted overflow-hidden mb-3">
-        {product.primaryImage ? (
-          <img
-            src={product.primaryImage}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs tracking-widest uppercase">No image</div>
-        )}
-      </div>
-      <div>
-        <p className="text-sm font-medium text-foreground line-clamp-1">{product.name}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-sm text-foreground font-medium">₹{product.price.toLocaleString("en-IN")}</p>
-          {product.compareAtPrice && (
-            <p className="text-xs text-muted-foreground line-through">₹{product.compareAtPrice.toLocaleString("en-IN")}</p>
-          )}
-        </div>
-      </div>
-    </Link>
   );
 }

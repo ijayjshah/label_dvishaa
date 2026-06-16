@@ -5,11 +5,19 @@ import { cn } from "@/lib/utils";
 export const motionEase = [0.22, 1, 0.36, 1] as const;
 
 export const revealItemVariants: Variants = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, y: 14 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.48, ease: motionEase },
+    transition: { duration: 0.65, ease: motionEase },
+  },
+};
+
+export const fadeVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { duration: 0.8, ease: motionEase },
   },
 };
 
@@ -25,7 +33,7 @@ type RevealProps = Omit<HTMLMotionProps<"div">, "children"> & {
 export function Reveal({
   children,
   className,
-  y = 26,
+  y = 18,
   delay = 0,
   viewMargin = "-56px 0px -40px 0px",
   ...rest

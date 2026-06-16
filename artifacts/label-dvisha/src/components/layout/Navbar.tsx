@@ -94,10 +94,10 @@ export function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: reduceMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-[4.25rem] sm:h-20 gap-3">
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
+        <div className="flex items-center justify-between h-16 sm:h-[4.25rem] md:h-20 gap-2 sm:gap-3">
           <button
-            className="md:hidden p-2 -ml-2"
+            className="md:hidden p-2.5 -ml-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
             style={{ color: navInk }}
             onClick={() => setOpen(!open)}
             data-testid="button-mobile-menu"
@@ -112,7 +112,7 @@ export function Navbar() {
             data-testid="link-logo"
             aria-label="Label Dvisha home"
           >
-            <BrandLogo imgClassName="h-12 sm:h-14 w-auto max-w-[min(220px,58vw)] object-contain object-center" />
+            <BrandLogo imgClassName="h-10 sm:h-12 md:h-14 w-auto max-w-[min(200px,52vw)] object-contain object-center" />
           </Link>
 
           <nav className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8">
@@ -266,7 +266,7 @@ export function Navbar() {
               </Button>
             )}
 
-            <Link href="/cart" className="relative p-2" data-testid="link-cart">
+            <Link href="/cart" className="relative p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center" data-testid="link-cart">
               <ShoppingBag className="w-5 h-5" style={{ color: navInk }} />
               {itemCount > 0 && (
                 <span
