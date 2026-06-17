@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
+import webhooksRouter from "./routes/webhooks";
 import { logger } from "./lib/logger";
 import { corsOptionsFromEnv } from "./lib/cors-options";
 import { getWebAppBaseUrl } from "./lib/web-app-url";
@@ -29,6 +30,11 @@ app.use(
   }),
 );
 app.use(cors(corsOptionsFromEnv()));
+app.use(
+  "/api/webhooks",
+  express.raw({ type: "application/json" }),
+  webhooksRouter,
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

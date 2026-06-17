@@ -3,7 +3,9 @@ import { db, ordersTable, orderItemsTable, cartItemsTable, cartsTable, productsT
 import { eq, and, desc, count, ilike, or } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../lib/auth";
 import { CreateOrderBody, ListOrdersQueryParams, GetOrderParams, UpdateOrderStatusBody, UpdateOrderStatusParams, VerifyPaymentBody } from "@workspace/api-zod";
-import crypto from "crypto";
+import { getRazorpayClient, getRazorpayKeyId, isRazorpayConfigured, verifyPaymentSignature } from "../lib/razorpay";
+import { markOrderPaid } from "../lib/order-payment";
+import { logger } from "../lib/logger";
 
 const router: Router = Router();
 
@@ -88,20 +90,40 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
     totalPrice: (Number(r.product?.price ?? 0) * r.item.quantity).toString(),
   })));
 
-  // Create Razorpay order (mock if no key)
-  const razorpayKeyId = process.env.RAZORPAY_KEY_ID ?? "mock_key";
-  const razorpayOrderId = `rzp_${order.id}_${Date.now()}`;
+  const razorpayKeyId = getRazorpayKeyId();
+  const amountPaise = Math.round(total * 100);
+  let razorpayOrderId: string;
 
-  // Update order with razorpay order id
+  const razorpay = getRazorpayClient();
+  if (razorpay) {
+    try {
+      const rzpOrder = await razorpay.orders.create({
+        amount: amountPaise,
+        currency: "INR",
+        receipt: orderNumber,
+        notes: { orderId: String(order.id) },
+      });
+      razorpayOrderId = rzpOrder.id;
+    } catch (err) {
+      logger.error({ err, orderId: order.id }, "Failed to create Razorpay order");
+      await db.delete(orderItemsTable).where(eq(orderItemsTable.orderId, order.id));
+      await db.delete(ordersTable).where(eq(ordersTable.id, order.id));
+      res.status(502).json({ error: "Unable to initiate payment. Please try again." });
+      return;
+    }
+  } else {
+    razorpayOrderId = `mock_${order.id}_${Date.now()}`;
+  }
+
   await db.update(ordersTable).set({ razorpayOrderId }).where(eq(ordersTable.id, order.id));
-
-  // Clear cart
-  await db.delete(cartItemsTable).where(eq(cartItemsTable.cartId, cart.id));
 
   res.status(201).json({
     order: formatOrder({ ...order, razorpayOrderId }),
-    razorpayOrderId, razorpayKeyId,
-    amount: total * 100, currency: "INR",
+    razorpayOrderId,
+    razorpayKeyId,
+    amount: amountPaise,
+    currency: "INR",
+    mockPayment: !isRazorpayConfigured(),
   });
 });
 
@@ -153,22 +175,37 @@ router.post("/orders/verify-payment", requireAuth, async (req, res): Promise<voi
   const parsed = VerifyPaymentBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
+  const user = (req as any).user;
   const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = parsed.data;
-  const razorpaySecret = process.env.RAZORPAY_KEY_SECRET ?? "";
 
-  if (razorpaySecret) {
-    const expectedSig = crypto.createHmac("sha256", razorpaySecret)
-      .update(`${razorpayOrderId}|${razorpayPaymentId}`).digest("hex");
-    if (expectedSig !== razorpaySignature) {
+  const [existing] = await db
+    .select()
+    .from(ordersTable)
+    .where(and(eq(ordersTable.id, orderId), eq(ordersTable.userId, user.id)));
+
+  if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+
+  if (existing.razorpayOrderId && existing.razorpayOrderId !== razorpayOrderId) {
+    res.status(400).json({ error: "Payment order mismatch" });
+    return;
+  }
+
+  if (existing.paymentStatus === "paid") {
+    res.json(formatOrder(existing));
+    return;
+  }
+
+  if (isRazorpayConfigured()) {
+    if (!verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature)) {
       res.status(400).json({ error: "Invalid payment signature" });
       return;
     }
+  } else if (process.env.NODE_ENV === "production") {
+    res.status(503).json({ error: "Payment gateway not configured" });
+    return;
   }
 
-  const [order] = await db.update(ordersTable).set({
-    paymentStatus: "paid", razorpayPaymentId, razorpaySignature, status: "confirmed",
-  }).where(eq(ordersTable.id, orderId)).returning();
-
+  const order = await markOrderPaid(orderId, razorpayPaymentId, razorpaySignature);
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
   res.json(formatOrder(order));
 });

@@ -22,9 +22,29 @@ const FALLBACK_SLIDES: HeroSlide[] = [
   {
     title: "Wear Your Story",
     subtitle: "Handcrafted womenswear from Surat.",
-    linkUrl: "/products",
+    linkUrl: null,
   },
 ];
+
+const COLLECTIONS_SECTION_ID = "explore-collections";
+
+function isValidCollectionRoute(url: string) {
+  return /^\/collections\/[^/?#]+/.test(url);
+}
+
+function scrollToCollectionsSection() {
+  document.getElementById(COLLECTIONS_SECTION_ID)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+const exploreCtaClass = cn(
+  "inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full min-h-[44px]",
+  glassPanelDark,
+  "text-[10px] sm:text-[11px] font-sans font-medium tracking-[0.2em] uppercase text-white",
+  "transition-all duration-500 hover:bg-white/15 hover:border-white/30",
+);
 
 export function HeroSlider({ banners }: HeroSliderProps) {
   const reduceMotion = useReducedMotion();
@@ -53,11 +73,13 @@ export function HeroSlider({ banners }: HeroSliderProps) {
   const slide = slides[active];
   const imageUrl = slide?.imageUrl;
   const outlineWord = slide.title.split(" ").pop() ?? slide.title;
+  const bannerLink = slide.linkUrl?.trim();
+  const collectionRoute = bannerLink && isValidCollectionRoute(bannerLink) ? bannerLink : null;
 
   return (
     <section className="relative overflow-hidden bg-primary text-primary-foreground min-h-[100svh]">
       {/* Background imagery with parallax */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <AnimatePresence mode="popLayout">
           <motion.div
             key={`bg-${active}`}
@@ -165,18 +187,24 @@ export function HeroSlider({ banners }: HeroSliderProps) {
               )}
 
               <MagneticButton>
-                <Link
-                  href={slide.linkUrl ?? "/products"}
-                  className={cn(
-                    "inline-flex items-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full min-h-[44px]",
-                    glassPanelDark,
-                    "text-[10px] sm:text-[11px] font-sans font-medium tracking-[0.2em] uppercase text-white",
-                    "transition-all duration-500 hover:bg-white/15 hover:border-white/30",
-                  )}
-                >
-                  Explore Collections
-                  <span className="inline-block w-6 h-px bg-white/60 group-hover:w-8 transition-all duration-300" />
-                </Link>
+                {collectionRoute ? (
+                  <Link href={collectionRoute} className={exploreCtaClass}>
+                    Explore Collections
+                    <span className="inline-block w-6 h-px bg-white/60 group-hover:w-8 transition-all duration-300" />
+                  </Link>
+                ) : (
+                  <a
+                    href={`#${COLLECTIONS_SECTION_ID}`}
+                    className={exploreCtaClass}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToCollectionsSection();
+                    }}
+                  >
+                    Explore Collections
+                    <span className="inline-block w-6 h-px bg-white/60 group-hover:w-8 transition-all duration-300" />
+                  </a>
+                )}
               </MagneticButton>
             </motion.div>
           </AnimatePresence>

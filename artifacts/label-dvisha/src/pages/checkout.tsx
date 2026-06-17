@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Name is required"),
@@ -22,14 +23,28 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 
 declare const Razorpay: any;
 
+type CreateOrderResult = {
+  order: { id: number; orderNumber: string };
+  razorpayOrderId: string;
+  razorpayKeyId: string;
+  amount: number;
+  currency: string;
+  mockPayment?: boolean;
+};
+
 export default function Checkout() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: cart } = useGetCart();
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutForm>({
     resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      fullName: user?.fullName ?? "",
+      phone: user?.phone ?? "",
+    },
   });
 
   const createOrder = useCreateOrder();
@@ -40,10 +55,80 @@ export default function Checkout() {
         toast({ title: "Order placed successfully!", description: `Order #${(order as any).orderNumber}` });
         setLocation(`/orders/${(order as any).id}`);
       },
+      onError: () => {
+        toast({
+          title: "Payment verification failed",
+          description: "Your payment may have gone through. Check My Orders or contact support.",
+          variant: "destructive",
+        });
+      },
     },
   });
 
   const items = cart?.items ?? [];
+
+  function verifyAndComplete(result: CreateOrderResult, paymentId: string, signature: string) {
+    verifyPayment.mutate({
+      data: {
+        orderId: result.order.id,
+        razorpayOrderId: result.razorpayOrderId,
+        razorpayPaymentId: paymentId,
+        razorpaySignature: signature,
+      },
+    });
+  }
+
+  function openRazorpayCheckout(result: CreateOrderResult, formData: CheckoutForm) {
+    if (result.mockPayment || result.razorpayKeyId === "mock_key") {
+      verifyAndComplete(result, `mock_pay_${result.order.id}`, "mock_signature");
+      return;
+    }
+
+    if (typeof Razorpay === "undefined") {
+      toast({
+        title: "Payment unavailable",
+        description: "Razorpay checkout could not be loaded. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const options = {
+      key: result.razorpayKeyId,
+      amount: result.amount,
+      currency: result.currency,
+      name: "Label Dvisha",
+      description: `Order ${result.order.orderNumber}`,
+      order_id: result.razorpayOrderId,
+      prefill: {
+        name: formData.fullName,
+        email: user?.email ?? "",
+        contact: formData.phone,
+      },
+      handler: (response: { razorpay_payment_id: string; razorpay_signature: string }) => {
+        verifyAndComplete(result, response.razorpay_payment_id, response.razorpay_signature);
+      },
+      modal: {
+        ondismiss: () => {
+          toast({
+            title: "Payment cancelled",
+            description: "Your order is saved as unpaid. You can retry payment from My Orders.",
+          });
+        },
+      },
+      theme: { color: "#3D2B1F" },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on("payment.failed", (response: { error?: { description?: string } }) => {
+      toast({
+        title: "Payment failed",
+        description: response.error?.description ?? "Please try again with another payment method.",
+        variant: "destructive",
+      });
+    });
+    rzp.open();
+  }
 
   function onSubmit(formData: CheckoutForm) {
     createOrder.mutate({
@@ -60,35 +145,13 @@ export default function Checkout() {
         paymentMethod: "razorpay",
       },
     }, {
-      onSuccess: (result: any) => {
-        if (typeof Razorpay === "undefined") {
-          toast({ title: "Dev mode: Payment simulated", description: "Order placed successfully" });
-          queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
-          setLocation(`/orders/${result.order.id}`);
-          return;
-        }
-
-        const options = {
-          key: result.razorpayKeyId,
-          amount: result.amount,
-          currency: result.currency,
-          name: "Label Dvisha",
-          description: `Order ${result.order.orderNumber}`,
-          order_id: result.razorpayOrderId,
-          handler: (response: any) => {
-            verifyPayment.mutate({
-              data: {
-                orderId: result.order.id,
-                razorpayOrderId: result.razorpayOrderId,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              },
-            });
-          },
-          theme: { color: "#3D2B1F" },
-        };
-        const rzp = new Razorpay(options);
-        rzp.open();
+      onSuccess: (result) => openRazorpayCheckout(result as CreateOrderResult, formData),
+      onError: () => {
+        toast({
+          title: "Could not place order",
+          description: "Please try again in a moment.",
+          variant: "destructive",
+        });
       },
     });
   }
@@ -143,7 +206,7 @@ export default function Checkout() {
                 disabled={createOrder.isPending || verifyPayment.isPending}
                 data-testid="button-place-order"
               >
-                {createOrder.isPending ? "Processing..." : "Place Order & Pay"}
+                {createOrder.isPending ? "Processing..." : verifyPayment.isPending ? "Confirming payment..." : "Place Order & Pay"}
               </Button>
             </form>
           </div>
