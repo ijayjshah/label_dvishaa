@@ -207,7 +207,7 @@ export function Footer() {
             <Link href="/#" className={hoverLink}>
               Terms of Service
             </Link>
-            <span className="text-[#EDE8E0]/90">Made with ❤️ in India</span>
+            <span className="text-[#EDE8E0]/90">Made with ❤️ AttachToTech.</span>
           </div>
         </div>
       </div>
