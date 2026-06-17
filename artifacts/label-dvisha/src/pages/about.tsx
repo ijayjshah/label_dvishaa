@@ -64,12 +64,15 @@ const REVIEWS: Review[] = [
 ];
 
 const FOUNDER = {
-  name: "Priya Dvisha",
-  role: "Founder & Creative Director",
-  image: publicAssetUrl("founder-priya.png"),
-  bio: "Priya founded Label Dvisha with a vision to create clothing that feels deeply personal — where Indian textile heritage meets contemporary, minimal design.",
-  quote:
-    "Every garment we create is an invitation to express who you are — refined, intentional, and unmistakably yours.",
+  name: "DVisha",
+  role: "Founder",
+  image: publicAssetUrl("founder-dvisha.png"),
+  story: [
+    "Label DVisha was born from a simple belief: confidence begins with comfort.",
+    "After studying fashion and working in the industry, I realized my dream wasn't to build a career for someone else—it was to create a brand of my own. In 2022, I left my job, trusted my vision, and started Label DVisha with a small investment, strong family support, and a passion for designing effortless western wear for women.",
+    "Every piece is thoughtfully created to make women feel comfortable, confident, and beautiful in their own skin. For me, fashion has never been about trends—it's about how a woman feels when she wears something she truly loves.",
+    "Today, Label DVisha represents timeless style, comfort, and the confidence to be unapologetically yourself.",
+  ],
 };
 
 function usePageSeo() {
@@ -283,9 +286,9 @@ export default function AboutPage() {
               <p className="mb-3 text-[0.65rem] font-sans uppercase tracking-[0.24em] text-[#2D1E17]/50">
                 The person behind the label
               </p>
-              <h2 className="font-serif text-3xl sm:text-4xl text-foreground tracking-tight mb-4">Meet Our Founder</h2>
+              <h2 className="font-serif text-3xl sm:text-4xl text-foreground tracking-tight mb-4">Founder Story</h2>
               <p className="font-sans text-base text-foreground/70 leading-relaxed">
-                A passion for Indian textiles, thoughtful design, and clothing that feels deeply personal.
+                Confidence begins with comfort — the belief at the heart of Label DVisha.
               </p>
             </div>
 
@@ -316,13 +319,14 @@ export default function AboutPage() {
                 <p className="mb-3 text-[0.65rem] font-sans uppercase tracking-[0.22em] text-[#2D1E17]/50">
                   {FOUNDER.role}
                 </p>
-                <h3 className="font-serif text-3xl sm:text-4xl text-foreground tracking-tight mb-6">{FOUNDER.name}</h3>
-                <p className="font-sans text-base sm:text-lg text-foreground/85 leading-relaxed mb-8">{FOUNDER.bio}</p>
-                <blockquote className="relative border-l-2 border-[#C4A574] pl-5 sm:pl-6">
-                  <p className="font-serif text-lg sm:text-xl text-foreground/90 leading-relaxed italic">
-                    &ldquo;{FOUNDER.quote}&rdquo;
-                  </p>
-                </blockquote>
+                <div className="space-y-5 font-sans text-base sm:text-lg text-foreground/85 leading-relaxed mb-8">
+                  {FOUNDER.story.map((paragraph) => (
+                    <p key={paragraph.slice(0, 32)}>{paragraph}</p>
+                  ))}
+                </div>
+                <p className="font-serif text-lg sm:text-xl text-foreground/90">
+                  — {FOUNDER.name}, {FOUNDER.role}
+                </p>
               </div>
             </motion.div>
           </div>

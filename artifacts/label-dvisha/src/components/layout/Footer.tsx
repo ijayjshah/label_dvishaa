@@ -20,9 +20,11 @@ export function Footer() {
     return m;
   }, [settings]);
 
-  const phone = byKey.store_phone || "+91 98765 43210";
-  const email = byKey.store_email || "hello@labeldvisha.com";
-  const address = byKey.store_address || "Surat, Gujarat, India";
+  const phone = byKey.store_phone || "+91 79904 14960";
+  const email = byKey.store_email || "Labeldvisha4345@gmail.com";
+  const address =
+    byKey.store_address ||
+    "Sukan Residency Nr, TGB Circle Opp Saurabh Society, Behind Saurabh Police Chowky, Pal Adajan Gam, Surat 395009";
   const instagramUrl = byKey.instagram_url || "https://instagram.com/labeldvisha";
 
   const [newsletterEmail, setNewsletterEmail] = useState("");

@@ -3,7 +3,7 @@ import { db } from "./index";
 import { usersTable } from "./schema/index";
 import bcrypt from "bcryptjs";
 
-const DEFAULT_EMAIL = "admin@labeldvisha.com";
+const DEFAULT_EMAIL = "labeldvisha4345@gmail.com";
 const DEFAULT_PASSWORD = "Admin@1234";
 
 export type SeedAdminOptions = {
@@ -21,7 +21,7 @@ export async function seedDefaultAdmin(options: SeedAdminOptions = {}): Promise<
   const email = options.email ?? process.env.SEED_ADMIN_EMAIL ?? DEFAULT_EMAIL;
   const password = options.password ?? process.env.SEED_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
   const fullName = options.fullName ?? process.env.SEED_ADMIN_NAME ?? "Label Dvisha Admin";
-  const phone = options.phone ?? process.env.SEED_ADMIN_PHONE ?? "9999999999";
+  const phone = options.phone ?? process.env.SEED_ADMIN_PHONE ?? "7990414960";
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing.length > 0) {

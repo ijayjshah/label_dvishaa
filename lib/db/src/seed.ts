@@ -43,9 +43,9 @@ async function seed() {
   // Settings
   const settings = [
     { key: "store_name", value: "Label Dvisha", group: "general" },
-    { key: "store_email", value: "hello@labeldvisha.com", group: "general" },
-    { key: "store_phone", value: "+91 9999999999", group: "general" },
-    { key: "store_address", value: "Mumbai, India", group: "general" },
+    { key: "store_email", value: "Labeldvisha4345@gmail.com", group: "general" },
+    { key: "store_phone", value: "+91 79904 14960", group: "general" },
+    { key: "store_address", value: "Sukan Residency Nr, TGB Circle Opp Saurabh Society, Behind Saurabh Police Chowky, Pal Adajan Gam, Surat 395009", group: "general" },
     { key: "free_shipping_threshold", value: "999", group: "shipping" },
     { key: "currency", value: "INR", group: "general" },
     { key: "instagram_url", value: "https://instagram.com/labeldvisha", group: "social" },
